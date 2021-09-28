@@ -24,4 +24,5 @@
 float a;
 return a + 2;
 
+int ar[2];
 

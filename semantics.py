@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import antlr4 as antlr
 from enum import Enum
 from CoffeeLang.CoffeeLexer import CoffeeLexer
@@ -16,6 +18,16 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
 
+    # def implVarDeclaration(self, scope: 0 | 1, lineNum: int, varType: str, length: int, idStr):
+    #     for index in range(length):
+    #         variableId = idStr(index)
+    #         if self.stbl.peek(variableId):
+    #             print(f'error on line {lineNum}: var {variableId} already defined')
+    #         variableSize = 8
+    #         isArray = False
+    #         var = Var(variableId, varType, variableSize, scope, isArray, lineNum)
+    #         self.stbl.pushVar(var)
+
     def visitProgram(self, ctx):
         self.stbl.pushFrame(ctx)
         self.visitChildren(ctx)
@@ -25,16 +37,20 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         lineNumber = ctx.start.line
         variableType = ctx.var_decl().data_type().getText()
 
-        # print(f'{lineNumber}: {variableType}')
-
         for index in range(len(ctx.var_decl().var_assign())):
+            varTest = ctx.var_decl().var_assign(index).var()
             variableId = ctx.var_decl().var_assign(index).var().ID().getText()
             if self.stbl.peek(variableId) is not None:
                 print(f'error on line {lineNumber}: var {variableId} already defined')
-            variableSize = 8
-            isVariableArray = False
-            var = Var(variableId, variableType, variableSize, Var.GLOBAL, isVariableArray, lineNumber)
-            self.stbl.pushVar(var)
+
+            if varTest.INT_LIT is not None:
+                print(f"x{lineNumber}")
+                arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
+                self.stbl.pushVar(arrayVar)
+            else:
+                print(f"zz{lineNumber}")
+                nonArrayVar = Var(variableId, variableType, 8, Var.GLOBAL, False, lineNumber)
+                self.stbl.pushVar(nonArrayVar)
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
         lineNumber = ctx.start.line
