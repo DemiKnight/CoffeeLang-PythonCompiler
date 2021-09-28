@@ -4,21 +4,88 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
 from CoffeeLang.CoffeeUtil import SymbolTable
 
+from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable
+
+
 class CoffeeTreeVisitor(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
 
     def visitProgram(self, ctx):
+        self.stbl.pushFrame(ctx)
         self.visitChildren(ctx)
+        self.stbl.popFrame()
+
+    def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
+        lineNumber = ctx.start.line
+        variableType = ctx.var_decl().data_type().getText()
+
+        for index in range(len(ctx.var_decl().var_assign())):
+            variableId = ctx.var_decl().var_assign(index).var().ID().getText()
+            if self.stbl.peek(variableId) is not None:
+                print(f'error on line {lineNumber}: var {variableId} already defined')
+            variableSize = 8
+            isVariableArray = False
+            var = Var(variableId, variableType, variableSize, Var.GLOBAL, isVariableArray, lineNumber)
+            self.stbl.pushVar(var)
+
+    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
+        lineNumber = ctx.start.line
+        methodId = ctx.ID().getText()
+        methodType = ctx.return_type().getText()
+
+        if self.stbl.peek(methodId) is not None:
+            print(f"error on line {lineNumber}: Method {methodId} is already defined")
+
+        method = Method(methodId, methodType, lineNumber)
+        self.stbl.pushMethod(method)
+        self.stbl.pushFrame(method)
+
+        for index in range(len(ctx.param())):
+            paramId = ctx.param(index).ID().getText()
+            print(paramId)
+            paramType = ctx.param(index).data_type().getText()
+            paramSize = 8
+            paramArray = False
+
+            if self.stbl.peek(paramId) is not None:
+                print(f"error on line {lineNumber}: Parameter {paramId} is already defined")
+
+            param = Var(paramId, paramType, paramSize, Var.LOCAL, paramArray, lineNumber)
+            method.pushParam(paramType)
+            self.stbl.pushVar(param)
+
+        self.visit(ctx.block())
+
+        print(f'{method.has_return} {methodType} {method.has_return is False and methodType != "void"}')
+
+        if method.has_return is True and methodType == "void":
+            print(f"error: {methodId} should have returned {methodType}")
+
+        self.stbl.popFrame()
+
+    def visitBlock(self, ctx: CoffeeParser.BlockContext):
+        if ctx.RCURLY() is not None:
+            self.stbl.pushScope()
+        self.visitChildren(ctx)
+        if ctx.LCURLY() is not None:
+            self.stbl.popScope()
+
+    def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
+        lineNumber = ctx.start.line
+        variableType = ctx.data_type().getText()
+
+        for index in range(len(ctx.var_assign())):
+            variableId = ctx.var_assign(index).var().ID().getText()
+            if self.stbl.peek(variableId) is not None:
+                print(f'error on line {lineNumber}: var {variableId} already defined')
+            variableSize = 8
+            isVariableArray = False
+            var = Var(variableId, variableType, variableSize, Var.LOCAL, isVariableArray, lineNumber)
+            self.stbl.pushVar(var)
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
         return super().visitImport_stmt(ctx)
-
-    def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
-        return super().visitGlobal_decl(ctx)
-
-    def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
-        return super().visitVar_decl(ctx)
 
     def visitVar_assign(self, ctx: CoffeeParser.Var_assignContext):
         return super().visitVar_assign(ctx)
@@ -29,17 +96,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def visitData_type(self, ctx: CoffeeParser.Data_typeContext):
         return super().visitData_type(ctx)
 
-    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
-        return super().visitMethod_decl(ctx)
-
     def visitReturn_type(self, ctx: CoffeeParser.Return_typeContext):
         return super().visitReturn_type(ctx)
 
     def visitParam(self, ctx: CoffeeParser.ParamContext):
         return super().visitParam(ctx)
-
-    def visitBlock(self, ctx: CoffeeParser.BlockContext):
-        return super().visitBlock(ctx)
 
     def visitEval(self, ctx: CoffeeParser.EvalContext):
         return super().visitEval(ctx)
@@ -102,21 +163,21 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         return super().visitStep(ctx)
 
 
-#load source code
+# load source code
 filein = open('./test.coffee', 'r')
 source_code = filein.read();
 filein.close()
 
-#create a token stream from source code
+# create a token stream from source code
 lexer = CoffeeLexer(antlr.InputStream(source_code))
 stream = antlr.CommonTokenStream(lexer)
 
-#parse token stream
+# parse token stream
 parser = CoffeeParser(stream)
 tree = parser.program()
 
-#create Coffee Visitor object
+# create Coffee Visitor object
 visitor = CoffeeTreeVisitor()
 
-#visit nodes from tree root
+# visit nodes from tree root
 visitor.visit(tree)

@@ -2,11 +2,21 @@
   example Coffee program
 */
 
-float a = 1;
+//float a = 1;
+//
+//{
+//  int b = 2, b;
+//  int a;
+//}
+//
+//a = a + b;
 
-{
-  int b = 2, b;
-  int a;
+void foo(int a, float a, float b) {
+    int b;
+    return 0;
 }
 
-a = a + b;
+int test() {
+    int x;
+    return 12;
+}
