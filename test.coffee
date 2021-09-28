@@ -11,12 +11,17 @@
 //
 //a = a + b;
 
-void foo(int a, float a, float b) {
-    int b;
-    return 0;
-}
+//void foo(int a, float a, float b) {
+//    int b;
+//    return 0;
+//}
+//
+//int test() {
+//    int x;
+//    return 12;
+//}
 
-int test() {
-    int x;
-    return 12;
-}
+float a;
+return a + 2;
+
+

@@ -85,7 +85,10 @@ class SymbolTable:
         self.stack_frame:list = []
         self.method_ctx:list = []
         self.loop_ctx:list = []
-    
+
+    def test(self):
+        return self.stack_frame
+
     def pushFrame(self, method_ctx):
         self.stack_frame.append(StackFrame())
         self.pushMethodContext(method_ctx)

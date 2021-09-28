@@ -1,4 +1,5 @@
 import antlr4 as antlr
+from enum import Enum
 from CoffeeLang.CoffeeLexer import CoffeeLexer
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
@@ -6,6 +7,10 @@ from CoffeeLang.CoffeeUtil import SymbolTable
 
 from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable
 
+class TypePrecedence(Enum):
+    FLOAT = 0
+    INT = 1
+    BOOL = 2
 
 class CoffeeTreeVisitor(CoffeeVisitor):
     def __init__(self):
@@ -19,6 +24,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
         lineNumber = ctx.start.line
         variableType = ctx.var_decl().data_type().getText()
+
+        # print(f'{lineNumber}: {variableType}')
 
         for index in range(len(ctx.var_decl().var_assign())):
             variableId = ctx.var_decl().var_assign(index).var().ID().getText()
@@ -75,6 +82,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         lineNumber = ctx.start.line
         variableType = ctx.data_type().getText()
 
+        print(f'{lineNumber}: {variableType}')
+
         for index in range(len(ctx.var_assign())):
             variableId = ctx.var_assign(index).var().ID().getText()
             if self.stbl.peek(variableId) is not None:
@@ -83,6 +92,52 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             isVariableArray = False
             var = Var(variableId, variableType, variableSize, Var.LOCAL, isVariableArray, lineNumber)
             self.stbl.pushVar(var)
+
+    def visitExpr(self, ctx: CoffeeParser.ExprContext):
+        if ctx.literal() is not None:
+            return self.visit(ctx.literal())
+        elif ctx.location() is not None:
+            return self.visit(ctx.location())
+        elif len(ctx.expr()) == 2:
+            lhsExpressionType = self.visit(ctx.expr(0))
+            rhsExpressionType = self.visit(ctx.expr(1))
+            rhs = TypePrecedence[rhsExpressionType.upper()]
+            lhs = TypePrecedence[lhsExpressionType.upper()]
+            # print(f"{lhs} {rhs} {lhs.value > rhs.value} {lhsExpressionType if lhs.value < rhs.value else rhsExpressionType}")
+            return lhsExpressionType if lhs.value < rhs.value else rhsExpressionType
+        elif ctx.data_type() is not None:
+            return ctx.data_type()
+        else:
+            return self.visitChildren(ctx)
+
+    # `define the visitLiteral method to return a string for each possible literal (bool, int, float, char,
+    # string).`
+    def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
+        # bool
+        if ctx.bool_lit() is not None:
+            return "bool"
+
+        # int
+        elif ctx.INT_LIT is not None:
+            return "int"
+
+        # char
+        elif ctx.CHAR_LIT() is not None:
+            return "char"
+
+        # float
+        elif ctx.FLOAT_LIT() is not None:
+            return "float"
+
+        # string
+        else:
+            return "string"
+
+    def visitLocation(self, ctx: CoffeeParser.LocationContext):
+        variableId = ctx.ID().getText()
+
+        if self.stbl.peek(variableId) is not None:
+            return self.stbl.find(variableId).data_type
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
         return super().visitImport_stmt(ctx)
@@ -135,20 +190,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
         return super().visitMethod_call(ctx)
 
-    def visitExpr(self, ctx: CoffeeParser.ExprContext):
-        return super().visitExpr(ctx)
-
     def visitAssign_op(self, ctx: CoffeeParser.Assign_opContext):
         return super().visitAssign_op(ctx)
 
-    def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
-        return super().visitLiteral(ctx)
-
     def visitBool_lit(self, ctx: CoffeeParser.Bool_litContext):
         return super().visitBool_lit(ctx)
-
-    def visitLocation(self, ctx: CoffeeParser.LocationContext):
-        return super().visitLocation(ctx)
 
     def visitLimit(self, ctx: CoffeeParser.LimitContext):
         return super().visitLimit(ctx)
