@@ -9,24 +9,16 @@ from CoffeeLang.CoffeeUtil import SymbolTable
 
 from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable
 
+
 class TypePrecedence(Enum):
     FLOAT = 0
     INT = 1
     BOOL = 2
 
+
 class CoffeeTreeVisitor(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
-
-    # def implVarDeclaration(self, scope: 0 | 1, lineNum: int, varType: str, length: int, idStr):
-    #     for index in range(length):
-    #         variableId = idStr(index)
-    #         if self.stbl.peek(variableId):
-    #             print(f'error on line {lineNum}: var {variableId} already defined')
-    #         variableSize = 8
-    #         isArray = False
-    #         var = Var(variableId, varType, variableSize, scope, isArray, lineNum)
-    #         self.stbl.pushVar(var)
 
     def visitProgram(self, ctx):
         self.stbl.pushFrame(ctx)
@@ -40,17 +32,35 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         for index in range(len(ctx.var_decl().var_assign())):
             varTest = ctx.var_decl().var_assign(index).var()
             variableId = ctx.var_decl().var_assign(index).var().ID().getText()
+
+            maybeArrayLiteral = varTest.INT_LIT()
+            # print(f'array lit {type(maybeArrayLiteral)} {maybeArrayLiteral.getText() == 0}')
+
             if self.stbl.peek(variableId) is not None:
                 print(f'error on line {lineNumber}: var {variableId} already defined')
 
-            if varTest.INT_LIT is not None:
-                print(f"x{lineNumber}")
-                arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
-                self.stbl.pushVar(arrayVar)
-            else:
+            if maybeArrayLiteral is None:
                 print(f"zz{lineNumber}")
                 nonArrayVar = Var(variableId, variableType, 8, Var.GLOBAL, False, lineNumber)
                 self.stbl.pushVar(nonArrayVar)
+            elif maybeArrayLiteral.getText() == '0':
+                print(f'error on line {lineNumber}: array {variableId} can\'t be 0')
+            else:
+                print(f"x{lineNumber} {maybeArrayLiteral.getText() == '0'}")
+                arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
+                self.stbl.pushVar(arrayVar)
+
+            # if maybeArrayLiteral.getText() == 0:
+            #     print(f'error on line {lineNumber}: array {variableId} can\'t be 0')
+            #
+            # if varTest.INT_LIT() is not None and varTest.INT_LIT().getText() != 0:
+            #     print(f"x{lineNumber}")
+            #     arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
+            #     self.stbl.pushVar(arrayVar)
+            # else:
+            #     print(f"zz{lineNumber}")
+            #     nonArrayVar = Var(variableId, variableType, 8, Var.GLOBAL, False, lineNumber)
+            #     self.stbl.pushVar(nonArrayVar)
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
         lineNumber = ctx.start.line
