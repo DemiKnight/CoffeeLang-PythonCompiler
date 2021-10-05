@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+
 import antlr4 as antlr
 from enum import Enum
+
+from typing import List, Any
+
 from CoffeeLang.CoffeeLexer import CoffeeLexer
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
 from CoffeeLang.CoffeeUtil import SymbolTable
 
 from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable
+from SemanticsUtils import SemanticsError
 
 
 class TypePrecedence(Enum):
@@ -17,153 +22,37 @@ class TypePrecedence(Enum):
 
 
 class CoffeeTreeVisitor(CoffeeVisitor):
+    errors: List[SemanticsError]
+
     def __init__(self):
         self.stbl = SymbolTable()
+        self.errors = list()
 
-    def visitProgram(self, ctx):
+    def visitProgram(self, ctx) -> None:
         self.stbl.pushFrame(ctx)
         self.visitChildren(ctx)
         self.stbl.popFrame()
 
-    def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
-        lineNumber = ctx.start.line
-        variableType = ctx.var_decl().data_type().getText()
-
-        for index in range(len(ctx.var_decl().var_assign())):
-            varTest = ctx.var_decl().var_assign(index).var()
-            variableId = ctx.var_decl().var_assign(index).var().ID().getText()
-
-            maybeArrayLiteral = varTest.INT_LIT()
-            # print(f'array lit {type(maybeArrayLiteral)} {maybeArrayLiteral.getText() == 0}')
-
-            if self.stbl.peek(variableId) is not None:
-                print(f'error on line {lineNumber}: var {variableId} already defined')
-
-            if maybeArrayLiteral is None:
-                print(f"zz{lineNumber}")
-                nonArrayVar = Var(variableId, variableType, 8, Var.GLOBAL, False, lineNumber)
-                self.stbl.pushVar(nonArrayVar)
-            elif maybeArrayLiteral.getText() == '0':
-                print(f'error on line {lineNumber}: array {variableId} can\'t be 0')
-            else:
-                print(f"x{lineNumber} {maybeArrayLiteral.getText() == '0'}")
-                arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
-                self.stbl.pushVar(arrayVar)
-
-            # if maybeArrayLiteral.getText() == 0:
-            #     print(f'error on line {lineNumber}: array {variableId} can\'t be 0')
-            #
-            # if varTest.INT_LIT() is not None and varTest.INT_LIT().getText() != 0:
-            #     print(f"x{lineNumber}")
-            #     arrayVar = Var(variableId, variableType, varTest.INT_LIT, Var.GLOBAL, True, lineNumber)
-            #     self.stbl.pushVar(arrayVar)
-            # else:
-            #     print(f"zz{lineNumber}")
-            #     nonArrayVar = Var(variableId, variableType, 8, Var.GLOBAL, False, lineNumber)
-            #     self.stbl.pushVar(nonArrayVar)
-
-    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
-        lineNumber = ctx.start.line
-        methodId = ctx.ID().getText()
-        methodType = ctx.return_type().getText()
-
-        if self.stbl.peek(methodId) is not None:
-            print(f"error on line {lineNumber}: Method {methodId} is already defined")
-
-        method = Method(methodId, methodType, lineNumber)
-        self.stbl.pushMethod(method)
-        self.stbl.pushFrame(method)
-
-        for index in range(len(ctx.param())):
-            paramId = ctx.param(index).ID().getText()
-            print(paramId)
-            paramType = ctx.param(index).data_type().getText()
-            paramSize = 8
-            paramArray = False
-
-            if self.stbl.peek(paramId) is not None:
-                print(f"error on line {lineNumber}: Parameter {paramId} is already defined")
-
-            param = Var(paramId, paramType, paramSize, Var.LOCAL, paramArray, lineNumber)
-            method.pushParam(paramType)
-            self.stbl.pushVar(param)
-
-        self.visit(ctx.block())
-
-        print(f'{method.has_return} {methodType} {method.has_return is False and methodType != "void"}')
-
-        if method.has_return is True and methodType == "void":
-            print(f"error: {methodId} should have returned {methodType}")
-
-        self.stbl.popFrame()
-
-    def visitBlock(self, ctx: CoffeeParser.BlockContext):
-        if ctx.RCURLY() is not None:
-            self.stbl.pushScope()
-        self.visitChildren(ctx)
-        if ctx.LCURLY() is not None:
-            self.stbl.popScope()
+        for error in self.errors:
+            print(error.errorStr())
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
-        lineNumber = ctx.start.line
-        variableType = ctx.data_type().getText()
+        return super().visitVar_decl(ctx)
 
-        print(f'{lineNumber}: {variableType}')
+    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
+        return super().visitMethod_decl(ctx)
 
-        for index in range(len(ctx.var_assign())):
-            variableId = ctx.var_assign(index).var().ID().getText()
-            if self.stbl.peek(variableId) is not None:
-                print(f'error on line {lineNumber}: var {variableId} already defined')
-            variableSize = 8
-            isVariableArray = False
-            var = Var(variableId, variableType, variableSize, Var.LOCAL, isVariableArray, lineNumber)
-            self.stbl.pushVar(var)
+    def visitBlock(self, ctx: CoffeeParser.BlockContext):
+        return super().visitBlock(ctx)
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
-        if ctx.literal() is not None:
-            return self.visit(ctx.literal())
-        elif ctx.location() is not None:
-            return self.visit(ctx.location())
-        elif len(ctx.expr()) == 2:
-            lhsExpressionType = self.visit(ctx.expr(0))
-            rhsExpressionType = self.visit(ctx.expr(1))
-            rhs = TypePrecedence[rhsExpressionType.upper()]
-            lhs = TypePrecedence[lhsExpressionType.upper()]
-            # print(f"{lhs} {rhs} {lhs.value > rhs.value} {lhsExpressionType if lhs.value < rhs.value else rhsExpressionType}")
-            return lhsExpressionType if lhs.value < rhs.value else rhsExpressionType
-        elif ctx.data_type() is not None:
-            return ctx.data_type()
-        else:
-            return self.visitChildren(ctx)
+        return super().visitExpr(ctx)
 
-    # `define the visitLiteral method to return a string for each possible literal (bool, int, float, char,
-    # string).`
     def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
-        # bool
-        if ctx.bool_lit() is not None:
-            return "bool"
-
-        # int
-        elif ctx.INT_LIT is not None:
-            return "int"
-
-        # char
-        elif ctx.CHAR_LIT() is not None:
-            return "char"
-
-        # float
-        elif ctx.FLOAT_LIT() is not None:
-            return "float"
-
-        # string
-        else:
-            return "string"
+        return super().visitLiteral(ctx)
 
     def visitLocation(self, ctx: CoffeeParser.LocationContext):
-        variableId = ctx.ID().getText()
-
-        if self.stbl.peek(variableId) is not None:
-            return self.stbl.find(variableId).data_type
+        return super().visitLocation(ctx)
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
         return super().visitImport_stmt(ctx)
@@ -235,21 +124,22 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         return super().visitStep(ctx)
 
 
-# load source code
-filein = open('./test.coffee', 'r')
-source_code = filein.read();
-filein.close()
+if __name__ == "__main__":
+    # load source code
+    filein = open('./test.coffee', 'r')
+    source_code = filein.read()
+    filein.close()
 
-# create a token stream from source code
-lexer = CoffeeLexer(antlr.InputStream(source_code))
-stream = antlr.CommonTokenStream(lexer)
+    # create a token stream from source code
+    lexer = CoffeeLexer(antlr.InputStream(source_code))
+    stream = antlr.CommonTokenStream(lexer)
 
-# parse token stream
-parser = CoffeeParser(stream)
-tree = parser.program()
+    # parse token stream
+    parser = CoffeeParser(stream)
+    tree = parser.program()
 
-# create Coffee Visitor object
-visitor = CoffeeTreeVisitor()
+    # create Coffee Visitor object
+    visitor = CoffeeTreeVisitor()
 
-# visit nodes from tree root
-visitor.visit(tree)
+    # visit nodes from tree root
+    visitor.visit(tree)
