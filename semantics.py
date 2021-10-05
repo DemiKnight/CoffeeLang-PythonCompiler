@@ -27,6 +27,29 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         self.stbl = SymbolTable()
         self.errors = list()
 
+    def variableDeclUtil(self, type: str, line_number: int, indexes: range, thing):
+        for index in indexes:
+            variable: CoffeeParser.VarContext = thing(index).var()
+            variable_id = variable.ID().getText()
+            variable_size = 8  # Implement arrays here
+            variable_is_array = False
+
+            if self.stbl.peek(variable_id) is not None:
+                self.errors.append(SemanticsError(line_number, f"{variable_id} declared twice"))
+
+            if variable.INT_LIT() is not None:
+                variable_size = variable.INT_LIT().getText()
+
+                if variable_size == "0":
+                    self.errors.append(SemanticsError(line_number, f"array {variable_id} must not be declared  empty!"))
+
+                variable_is_array = True
+
+            return_variable = Var(variable_id, type, variable_size, Var.GLOBAL, variable_is_array, line_number)
+            self.stbl.pushVar(return_variable)
+
+        return None
+
     def visitProgram(self, ctx) -> None:
         self.stbl.pushFrame(ctx)
         self.visitChildren(ctx)
@@ -34,33 +57,18 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
         for error in self.errors:
             print(error.errorStr())
+        if len(self.errors) == 0:
+            print("Success! No errors found...")
+
         return None
 
     def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
-        self.stbl.pushScope()
         variable_type = ctx.var_decl().data_type().getText()
         line_number = ctx.start.line
 
-        for index in range(len(ctx.var_decl().var_assign())):
-            variable = ctx.var_decl().var_assign(index).var()
-            variable_id = variable.ID().getText()
-            variable_size = 8  # Implement arrays here
+        self.variableDeclUtil(variable_type, line_number, range(len(ctx.var_decl().var_assign())),
+                              ctx.var_decl().var_assign)
 
-            if self.stbl.peek(variable_id) is not None:
-                self.errors.append(SemanticsError(line_number, f"{variable_id} declared twice"))
-
-
-            return_variable = None
-            if variable.INT_LIT() is not None:
-                print()
-            else:
-                print()
-                # Var(variable_id, )
-
-
-            # print(var.var().ID())
-
-        self.stbl.popScope()
         return None
 
     def visitBlock(self, ctx: CoffeeParser.BlockContext):
@@ -73,19 +81,87 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.stbl.popScope()
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
-        return super().visitVar_decl(ctx)
+        line_number = ctx.start.line
+        variable_type = ctx.data_type().getText()
+
+        self.variableDeclUtil(variable_type, line_number, range(len(ctx.var_assign())),
+                              ctx.var_assign)
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
-        return super().visitMethod_decl(ctx)
+        line = ctx.start.line
+        method_id = ctx.ID().getText()
+        method_type = ctx.return_type().getText()
+
+        if self.stbl.peek(method_id) is not None:
+            self.errors.append(SemanticsError(line, f"method {method_id}->{method_type} declared twice!"))
+
+        method = Method(method_id, method_type, line)
+        self.stbl.pushMethod(method)
+        self.stbl.pushFrame(method)
+
+        # self.variableDeclUtil()
+        for index in range(len(ctx.param())):
+            param = ctx.param(index)
+            variable_id = param.ID().getText()
+            variable_type = param.data_type().getText()
+            variable_size = 8  # Implement arrays here
+            variable_is_array = False
+
+            if self.stbl.peek(variable_id) is not None:
+                self.errors.append(SemanticsError(line, f"Duplicate param {variable_id} for function {method_id}"))
+
+            method.pushParam(variable_type)
+            variable = Var(variable_id, variable_type, variable_size,Var.LOCAL,variable_is_array,line)
+            self.stbl.pushVar(variable)
+
+        self.visit(ctx.block())
+        self.stbl.popFrame()
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
-        return super().visitExpr(ctx)
+        if ctx.literal() is not None:
+            return self.visit(ctx.literal())
+        elif ctx.location() is not None:
+            return self.visit(ctx.location())
+        elif len(ctx.expr()) == 2:
+            expression_0 = self.visit(ctx.expr(0))
+            expression_1 = self.visit(ctx.expr(1))
+            expression_0_type = None
+            expression_1_type = None
+
+            if expression_0 is not None:
+                expression_0_type = TypePrecedence[expression_0.upper()]
+
+            if expression_1 is not None:
+                expression_1_type = TypePrecedence[expression_1.upper()]
+
+            if expression_1 is not None and expression_0 is not None:
+                return expression_0 if expression_0_type.value < expression_1_type.value else expression_1
+            else:
+                return None
+        elif ctx.data_type() is not None:
+            return self.visit(ctx.data_type())
+        else:
+            return self.visitChildren(ctx)
 
     def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
-        return super().visitLiteral(ctx)
+        if ctx.bool_lit() is not None:
+            return "bool"
+        elif ctx.INT_LIT() is not None:
+            return "int"
+        elif ctx.CHAR_LIT() is not None:
+            return "char"
+        elif ctx.FLOAT_LIT() is not None:
+            return "float"
+        else:  # should be string
+            return "string"
 
     def visitLocation(self, ctx: CoffeeParser.LocationContext):
-        return super().visitLocation(ctx)
+        variable_id = ctx.ID().getText()
+
+        if self.stbl.peek(variable_id) is not None:
+            return self.stbl.find(variable_id).data_type
+        else:
+            self.errors.append(SemanticsError(ctx.start.line, f"missing variable {variable_id} in expression"))
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
         return super().visitImport_stmt(ctx)

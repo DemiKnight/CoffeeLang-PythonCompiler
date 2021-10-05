@@ -2,14 +2,14 @@
   example Coffee program
 */
 
-float a = 1;
-
-{
-  int b = 2, b;
-  int a;
-}
-
-a = a + b;
+//float a = 1;
+//
+//{
+//  int b = 2, b;
+//  int a;
+//}
+//
+//a = a + b;
 
 //void foo(int a, float a, float b) {
 //    int b;
@@ -34,3 +34,8 @@ a = a + b;
 //}
 //
 //int a = food(1, -2.0, 5);
+
+float a = 2.1;
+int b = 2;
+bool d;
+return a + 2;
