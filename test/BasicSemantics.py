@@ -1,12 +1,11 @@
 import unittest
 
-
 # All kinds of variable declarations and type checking
 from semantics import CoffeeTreeVisitor
 from test.TestUtil import strToProgram
 
 
-class MyTestCase(unittest.TestCase):
+class BasicSemanticsSpec(unittest.TestCase):
 
     def setUp(self) -> None:
         self.testSubject = CoffeeTreeVisitor()
@@ -23,15 +22,17 @@ class MyTestCase(unittest.TestCase):
         """)
 
         # when
-        self.testSubject.visit(prog)
+        test = self.testSubject.visit(prog)
 
-        self.assertEqual(True, False)
+        self.assertEqual(len(self.testSubject.errors), 0)
 
     def test_variable_declaration_with_literal(self):
         # given
         prog = strToProgram("""
         int a = 5;
         """)
+
+
 
 
 if __name__ == '__main__':

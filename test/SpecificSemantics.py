@@ -3,7 +3,7 @@ from semantics import CoffeeTreeVisitor
 from test.TestUtil import strToProgram
 
 # 1 to 27 `Semantic Rules` from Coffee Lang Spec
-class MyTestCase(unittest.TestCase):
+class SpecificSemanticsSpec(unittest.TestCase):
     def setUp(self) -> None:
         self.testSubject = CoffeeTreeVisitor()
         super().setUp()
@@ -27,6 +27,7 @@ class MyTestCase(unittest.TestCase):
 
         # then
         self.assertEqual(len(self.testSubject.errors), 0)
+
 
 
 

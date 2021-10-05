@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import antlr4 as antlr
 from enum import Enum
 
@@ -35,15 +34,49 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
         for error in self.errors:
             print(error.errorStr())
+        return None
+
+    def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
+        self.stbl.pushScope()
+        variable_type = ctx.var_decl().data_type().getText()
+        line_number = ctx.start.line
+
+        for index in range(len(ctx.var_decl().var_assign())):
+            variable = ctx.var_decl().var_assign(index).var()
+            variable_id = variable.ID().getText()
+            variable_size = 8  # Implement arrays here
+
+            if self.stbl.peek(variable_id) is not None:
+                self.errors.append(SemanticsError(line_number, f"{variable_id} declared twice"))
+
+
+            return_variable = None
+            if variable.INT_LIT() is not None:
+                print()
+            else:
+                print()
+                # Var(variable_id, )
+
+
+            # print(var.var().ID())
+
+        self.stbl.popScope()
+        return None
+
+    def visitBlock(self, ctx: CoffeeParser.BlockContext):
+        if ctx.LCURLY() is not None:
+            self.stbl.pushScope()
+
+        self.visitChildren(ctx)
+
+        if ctx.RCURLY() is not None:
+            self.stbl.popScope()
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
         return super().visitVar_decl(ctx)
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
         return super().visitMethod_decl(ctx)
-
-    def visitBlock(self, ctx: CoffeeParser.BlockContext):
-        return super().visitBlock(ctx)
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
         return super().visitExpr(ctx)
