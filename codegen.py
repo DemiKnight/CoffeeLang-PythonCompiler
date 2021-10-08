@@ -1,3 +1,4 @@
+# See repo at https://github.com/DemiKnight/CoffeeLang-PythonCompiler
 import antlr4 as antlr
 
 from CoffeeLang.CoffeeLexer import CoffeeLexer
@@ -5,13 +6,21 @@ from CoffeeLang.CoffeeParser import CoffeeParser
 from CoffeeLang.CoffeeUtil import SymbolTable, Method
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 
+
+from SemanticsUtils import Assembler, Segment, FunctionOutput, Instr
+
 # Attempt: Task 1 & Task 2
 class CoffeeTreeVisitor(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
+        self.gen = Assembler()
+
+        self.gen.header.append(Segment("data"))
+        self.gen.header.append(Segment("text"))
+        self.gen.header.append(Segment("global _main"))
 
         self.data = '.data\n'
-        self.body = '.text\n.global main\n'
+        self.body = '.text\n.global _main\n'
 
     def visitProgram(self, ctx):
         line = ctx.start.line
@@ -19,9 +28,10 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         method = Method('main', 'int', line)
 
         self.stbl.pushFrame(method)
-        
         self.stbl.pushMethod(method)
 
+        self.gen.body.append(FunctionOutput("main"))
+        self.gen.body.append(Instr("push", immidate="%rbp"))
         method.body += method.id + ':\n'
         method.body += 'push %rbp\n'
         method.body += 'movq %rsp, %rbp\n'
@@ -75,6 +85,9 @@ visitor.visit(tree)
 #assembly output code
 code = visitor.data + visitor.body
 print(code)
+print('-'*12)
+output = visitor.gen.generate()
+print(output)
 
 #save the assembly file
 fileout = open('a.s', 'w')
@@ -82,5 +95,5 @@ fileout.write(code)
 fileout.close()
 
 #assemble and link
-import os
-os.system("gcc a.s -lm ; ./a.out ; echo $?")
+# import os
+# os.system("gcc a.s -lm ; ./a.out ; echo $?")

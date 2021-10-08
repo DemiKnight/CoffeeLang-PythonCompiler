@@ -1,3 +1,5 @@
+# See repo at https://github.com/DemiKnight/CoffeeLang-PythonCompiler
+
 from __future__ import annotations
 
 import antlr4 as antlr
@@ -19,7 +21,7 @@ class TypePrecedence(Enum):
     INT = 1
     BOOL = 2
 
-
+# Attempt: Task 1 & Task 2
 class CoffeeTreeVisitor(CoffeeVisitor):
     errors: List[SemanticsError]
 
@@ -33,6 +35,9 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             variable_id = variable.ID().getText()
             variable_size = 8  # Implement arrays here
             variable_is_array = False
+
+            print(variable_id)
+            print(f"xx {variable.INT_LIT()} {variable.expr()}")
 
             if self.stbl.peek(variable_id) is not None:
                 self.errors.append(SemanticsError(line_number, f"{variable_id} declared twice"))
@@ -84,6 +89,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         line_number = ctx.start.line
         variable_type = ctx.data_type().getText()
 
+        # print(ctx.var_assign(0))
+
         self.variableDeclUtil(variable_type, line_number, range(len(ctx.var_assign())),
                               ctx.var_assign)
 
@@ -122,6 +129,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
             return self.visit(ctx.location())
+        elif ctx.method_call() is not None:
+            return self.visit(ctx.method_call())
         elif len(ctx.expr()) == 2:
             expression_0 = self.visit(ctx.expr(0))
             expression_1 = self.visit(ctx.expr(1))
@@ -163,11 +172,20 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             self.errors.append(SemanticsError(ctx.start.line, f"missing variable {variable_id} in expression"))
 
-    def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
-        return super().visitImport_stmt(ctx)
+    def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
+        method_id = ctx.ID()
+        line_number = ctx.start.line
+
+        print("xxx")
+        print(method_id)
 
     def visitVar_assign(self, ctx: CoffeeParser.Var_assignContext):
+        print(ctx.var())
+
         return super().visitVar_assign(ctx)
+
+    def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
+        return super().visitImport_stmt(ctx)
 
     def visitVar(self, ctx: CoffeeParser.VarContext):
         return super().visitVar(ctx)
@@ -210,9 +228,6 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
     def visitLoop_var(self, ctx: CoffeeParser.Loop_varContext):
         return super().visitLoop_var(ctx)
-
-    def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
-        return super().visitMethod_call(ctx)
 
     def visitAssign_op(self, ctx: CoffeeParser.Assign_opContext):
         return super().visitAssign_op(ctx)

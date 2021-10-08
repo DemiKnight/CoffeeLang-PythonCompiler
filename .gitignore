@@ -4,3 +4,4 @@ venv/
 *.interp
 *.tokens
 *.java
+*.s
