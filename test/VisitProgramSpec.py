@@ -39,7 +39,6 @@ class ProgramStructSpec(unittest.TestCase):
         float a = 1;
         {
           int b = 2;
-          int a;
         }
         a = a + 2;
         """)
@@ -71,7 +70,6 @@ class ProgramStructSpec(unittest.TestCase):
         prog = strToProgram("""
         void foo(int a, float a, float b) {
             int b;
-            return 0; 
         }
         """)
 
@@ -167,6 +165,24 @@ class ProgramStructSpec(unittest.TestCase):
 
         # then
         self.assertEqual(len(self.testSubject.errors), 1)
+
+    def test_coursework_1(self):
+        # 4, 5, 6, 7, 26
+        # given
+        prog = strToProgram("""
+        import printf, printf;
+        void foo(int x, int y) {
+            return 0;
+        }
+
+        int a = food(1, -2.0, 5);""")
+
+        # when
+        self.testSubject.visit(prog)
+
+        # then
+        self.assertEqual(len(self.testSubject.errors), 4)
+
 
 if __name__ == '__main__':
     unittest.main()

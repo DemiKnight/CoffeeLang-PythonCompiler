@@ -3,9 +3,19 @@ from CoffeeLang.CoffeeLexer import CoffeeLexer
 from CoffeeLang.CoffeeParser import CoffeeParser
 
 
+from unittest.mock import MagicMock, Mock, patch
+
+from CoffeeLang.CoffeeUtil import SymbolTable
+
+
 def strToProgram(sourceCode: str) -> CoffeeParser.ProgramContext:
     lexer = CoffeeLexer(antlr.InputStream(sourceCode.strip()))
     stream = antlr.CommonTokenStream(lexer)
     # parse token stream
     parser = CoffeeParser(stream)
     return parser.program()
+
+
+class MockSymbolTable(SymbolTable):
+    def test(self):
+        print("help")
