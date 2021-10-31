@@ -12,7 +12,6 @@ class TreeVisit:
 
 
 class StubbedCoffeeTreeVisitor(CoffeeTreeVisitor):
-    # visitedPlaces: List[str]
     places: List[TreeVisit]
 
     def __init__(self):
@@ -131,7 +130,7 @@ class StubbedCoffeeTreeVisitor(CoffeeTreeVisitor):
 
     def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
         return_value = super().visitMethod_call(ctx)
-
+        self.places += TreeVisit("visitMethod_call", return_value)
         return return_value
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
