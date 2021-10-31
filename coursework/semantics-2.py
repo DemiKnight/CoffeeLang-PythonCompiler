@@ -255,7 +255,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
 if __name__ == "__main__":
     # load source code
-    filein = open('./test.coffee', 'r')
+    filein = open('../test.coffee', 'r')
     source_code = filein.read()
     filein.close()
 

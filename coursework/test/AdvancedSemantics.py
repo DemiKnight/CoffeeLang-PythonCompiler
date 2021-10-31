@@ -2,7 +2,7 @@ import unittest
 
 
 # If, loops & function calls checking.
-from semantics import CoffeeTreeVisitor
+from coursework.semantics import CoffeeTreeVisitor
 
 
 class AdvancedSemantics(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 
 # All kinds of variable declarations and type checking
-from semantics import CoffeeTreeVisitor
+from coursework.semantics import CoffeeTreeVisitor
 from test.TestUtil import strToProgram
 
 

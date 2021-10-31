@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 from CoffeeLang.CoffeeUtil import SymbolTable
-from semantics import CoffeeTreeVisitor
+from coursework.semantics import CoffeeTreeVisitor
 from test.TestUtil import strToProgram
 
 
