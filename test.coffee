@@ -14,7 +14,5 @@
 //int x = 12;
 //int x = 25;
 
-int x = 22;
-{
-    int x = 5;
-}
+int x = 12;
+int z = x;

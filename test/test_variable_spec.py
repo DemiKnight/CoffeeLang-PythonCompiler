@@ -1,50 +1,96 @@
 import pytest
+
+from Utils import SemanticsError, ErrorType
 from VisitorSpec import *
 from TestUtilities import TreeVisit
+from semantics import CoffeeTreeVisitor
 
 
 class TestVariableSpec:
 
-    @pytest.mark.skip()
-    def test_declaration(self):
-        # self.ignoreTest(VariableSpec.test_something2)
+    def test_declaration(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         int prog = 12;
         """)
 
         expected_calls = defaultCalls + [
-            # TreeVisit("visitMe", None)
+            TreeVisit("visitGlobal_decl", None)
         ]
-        # when
-        self.target.visit(test_prog)
 
-        # then
-        self.assertListEqual(defaultCalls, expected_calls)
+        # When
+        visitor_fixture.visit(test_prog)
 
-    @pytest.mark.skip()
-    def test_block_declaration(self):
-        test_prog = createTree("""
-        int op = 55;
-        {
-            int xx = 22;
-        }
-        """)
+        # Then
+        assert visitor_fixture.places == expected_calls
+        assert len(visitor_fixture.errors) == 0
 
-    @pytest.mark.skip()
-    def test_usage(self):
+    @pytest.mark.skip
+    def test_usage(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         int x = 12;
         int z = x;
         """)
 
-    @pytest.mark.skip()
-    def test_handle_existing_variable_name(self):
+        expected_calls = defaultCalls + [
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visitExpr", None),
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visitExpr", None),
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert visitor_fixture.places == expected_calls
+        assert len(visitor_fixture.errors) == 0
+
+    def test_handle_existing_variable_name_global(self, visitor_fixture):
+        # Given
         test_prog = createTree("""
         int x = 12;
         int x = 25;
         """)
+
+        expected_calls = defaultCalls + [
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visitGlobal_decl", None)
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert visitor_fixture.places == expected_calls
+        assert visitor_fixture.errors == [
+            SemanticsError(2, "x", ErrorType.VAR_ALREADY_DEFINED)
+        ]
+
+    def test_handle_existing_variable_name_local(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        {
+            int x = 12;
+            int x = 25;
+        }
+        """)
+
+        expected_calls = defaultCalls + [
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitVar_decl", None),
+            TreeVisit("visitVar_decl", None)
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert visitor_fixture.places == expected_calls
+        assert visitor_fixture.errors == [
+            SemanticsError(3, "x", ErrorType.VAR_ALREADY_DEFINED)
+        ]
 
     def test_block_scope_declaration(self, visitor_fixture):
         # Given
@@ -61,10 +107,9 @@ class TestVariableSpec:
             TreeVisit("visitVar_decl", None)
         ]
 
-        # when
+        # When
         visitor_fixture.visit(test_prog)
 
-        # then
+        # Then
         assert visitor_fixture.places == expected_calls
         assert len(visitor_fixture.errors) == 0
-

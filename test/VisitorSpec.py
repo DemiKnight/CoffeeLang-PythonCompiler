@@ -10,7 +10,7 @@ from TestUtilities import StubbedCoffeeTreeVisitor, TreeVisit
 
 
 def createTree(source_str: str) -> ParserRuleContext:
-    lexer = CoffeeLexer(InputStream(source_str))
+    lexer = CoffeeLexer(InputStream(source_str.strip()))
     stream = CommonTokenStream(lexer)
     parser = CoffeeParser(stream)
     return parser.program()

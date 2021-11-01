@@ -8,7 +8,7 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
 
 from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable
-from Utils import SemanticsError
+from Utils import SemanticsError, ErrorType, printSemanticErrors
 
 
 class TypePrecedence(Enum):
@@ -25,7 +25,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         self.errors = list()
 
     def visit(self, tree):
-        return super().visit(tree)
+        value = super().visit(tree)
+
+        printSemanticErrors(self.errors)
+
+        return value
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
         self.stbl.pushFrame(ctx)
@@ -50,8 +54,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             variable_size = 8
             variable_array = False
             variable_def = Var(variable_id, variable_type, variable_size, Var.GLOBAL, variable_array, line_number)
-            print(variable_def)
-            self.stbl.pushVar(variable_def)
+            if self.stbl.peek(variable_id) is not None:
+                self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
+            else:
+                self.stbl.pushVar(variable_def)
+        return None
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
         line_number = ctx.start.line
@@ -61,8 +68,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             variable_size = 8
             variable_array = False
             variable_def = Var(variable_id, variable_type, variable_size, Var.LOCAL, variable_array, line_number)
-            print(variable_def.name)
-            self.stbl.pushVar(variable_def)
+            if self.stbl.peek(variable_id) is not None:
+                self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
+            else:
+                self.stbl.pushVar(variable_def)
+        return None
 
     def visitData_type(self, ctx: CoffeeParser.Data_typeContext):
         return super().visitData_type(ctx)
