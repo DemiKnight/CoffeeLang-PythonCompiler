@@ -1,4 +1,4 @@
-import unittest
+
 import pytest
 from VisitorSpec import VisitorSpec, createTree
 from TestUtilities import TreeVisit
@@ -8,7 +8,7 @@ from TestUtilities import TreeVisit
 class TestVariableSpec(VisitorSpec):
 
     @pytest.mark.skip(reason="TODO")
-    def test_something2(self):
+    def test_declaration(self):
         # self.ignoreTest(VariableSpec.test_something2)
         # Given
         test_prog = createTree("""
@@ -24,6 +24,35 @@ class TestVariableSpec(VisitorSpec):
         # then
         self.assertListEqual(self.defaultCalls, expected_calls)
 
+    def test_block_declaration(self):
+        test_prog = createTree("""
+        int op = 55;
+        {
+            int xx = 22;
+        }
+        """)
 
-if __name__ == '__main__':
-    unittest.main()
+
+    @pytest.mark.skip(reason="TODO")
+    def test_usage(self):
+        # Given
+        test_prog = createTree("""
+        int x = 12;
+        int z = x;
+        """)
+
+    @pytest.mark.skip(reason="TODO")
+    def test_handle_existing_variable_name(self):
+        test_prog = createTree("""
+        int x = 12;
+        int x = 25;
+        """)
+
+    @pytest.mark.skip(reason="TODO")
+    def test_block_scope_declaration(self):
+        test_prog = createTree("""
+        int x = 22;
+        {
+            int x = 5;
+        }
+        """)
