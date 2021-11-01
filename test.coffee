@@ -22,5 +22,4 @@
 //}
 //foo();
 
-int x = 12;
-int z = x;
+int myArray[0];

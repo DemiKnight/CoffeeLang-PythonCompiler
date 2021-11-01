@@ -78,9 +78,9 @@ CodeGen Coursework Tasks 1 & 2
 ## Task 1 Expressions
 i) Arithmetic: Create a test source file with the following contents:
 ```c
-"int a, b;
+int a, b;
 a = 2 + 3 * 4; b = 5 - a % 10;
-return -(a + b);"
+return -(a + b);
 ```
 Write a solution which generates the correct assembly code and program output for the above Coffee code.
 

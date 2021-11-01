@@ -20,14 +20,14 @@ class TypePrecedence(Enum):
 
 class CoffeeTreeVisitor(CoffeeVisitor):
     errors: List[SemanticsError]
-    entranceFlag: bool
+    _entranceFlag: bool
 
     def __init__(self):
         self.stbl = SymbolTable()
-        self.entranceFlag = False
+        self._entranceFlag = False
         self.errors = list()
 
-    def declareVar(self, scope_context: int, line_number: int, var_type: str, context: CoffeeParser.Var_assignContext):
+    def declare_var(self, scope_context: int, line_number: int, var_type: str, context: CoffeeParser.Var_assignContext):
         variable_id = context.var().ID().getText()
         if self.stbl.peek(variable_id) is not None:
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
@@ -36,9 +36,9 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             variable_array = False
             variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_array, line_number)
 
-            variable_value_type = self.visit(context.expr())
+            variable_value_type = self.visit(context.expr()) if context.expr() is not None else None
 
-            if variable_value_type != var_type:
+            if variable_value_type is not None and variable_value_type != var_type:
                 self.errors.append(
                     SemanticsError(line_number,
                                    variable_id,
@@ -49,14 +49,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 self.stbl.pushVar(variable_def)
 
     def visit(self, tree):
-        if self.entranceFlag:
+        if self._entranceFlag:
             return super().visit(tree)
         else:
-            self.entranceFlag = True
+            self._entranceFlag = True
             value = super().visit(tree)
             print_semantic_errors(self.errors)
             return value
-
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
         method = Method("main", "int", ctx.start.line)
@@ -78,16 +77,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         line_number = ctx.start.line
         variable_type = ctx.var_decl().data_type().getText()
         for index in range(len(ctx.var_decl().var_assign())):
-            self.declareVar(Var.GLOBAL, line_number, variable_type, ctx.var_decl().var_assign(index))
-
-        return None
+            self.declare_var(Var.GLOBAL, line_number, variable_type, ctx.var_decl().var_assign(index))
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
         line_number = ctx.start.line
         variable_type = ctx.data_type().getText()
         for index in range(len(ctx.var_assign())):
-            self.declareVar(Var.LOCAL, line_number, variable_type, ctx.var_assign(index))
-        return None
+            self.declare_var(Var.LOCAL, line_number, variable_type, ctx.var_assign(index))
 
     def _method_impl(self, line_number: int, method_id: str, ctx: CoffeeParser.Method_declContext):
         method_type = ctx.return_type().getText()

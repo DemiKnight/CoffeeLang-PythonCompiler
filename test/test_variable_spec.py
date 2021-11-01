@@ -137,6 +137,23 @@ class TestVariableSpec:
             SemanticsError(3, "x", ErrorType.VAR_ALREADY_DEFINED)
         ]
 
+    def test_declaration_without_initialisation(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        int a;
+        """)
+
+        expected_calls = defaultCalls + [
+            TreeVisit("visitGlobal_decl", None)
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert list(visitor_fixture.trail.values()) == expected_calls
+        assert len(visitor_fixture.errors) == 0
+
     def test_block_scope_declaration(self, visitor_fixture):
         # Given
         test_prog = createTree("""

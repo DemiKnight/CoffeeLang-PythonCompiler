@@ -244,6 +244,9 @@ class TestExpressionSpec:
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert len(visitor_fixture.errors) == 0
 
-    @pytest.mark.skip
+    @pytest.mark.skip("todo")
     def test_data_type_returned(self, visitor_fixture):
-        print()
+        # Given
+        test_prog = createTree("""
+        
+        """)

@@ -15,7 +15,9 @@ class ErrorType(Enum):
     VAR_ALREADY_DEFINED = "Variable {identifier} already defined"
     VAR_PARAM_ALREADY_DEFINED = "Parameter {identifier} already defined"
     VAR_ASSIGN_TYPE_MISMATCH = "Variable {identifier} requires {type_required} but was assigned {type_mismatched}"
-    METHOD_ALREADY_DEFINED = "Method {identifier} already defined!"
+    METHOD_ALREADY_DEFINED = "Method {identifier} already defined"
+
+    ARRAY_SIZE_ZERO_OR_LESS = "Array {identifier} declared with 0 or less capacity"
 
     # Weird/impossible state errors
     UNKNOWN_LITERAL_TYPE = "Unknown literal type {identifier}"
