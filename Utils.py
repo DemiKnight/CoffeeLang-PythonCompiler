@@ -32,10 +32,11 @@ class SemanticsError:
 
 def print_semantic_errors(errors: List[SemanticsError]) -> None:
     for error in errors:
-        formatted_str: str = error.ErrorT.value.format(identifier=error.identifier)
-        if error.type_mismatched is not None:
-            formatted_str = formatted_str.format(type_mismatched=error.type_mismatched)
-        if error.type_required is not None:
-            formatted_str = formatted_str.format(type_required=error.type_required)
+        type_mismatch_str = error.type_mismatched if error.type_mismatched is not None else ""
+        type_required_str = error.type_required if error.type_required is not None else ""
+
+        formatted_str: str = error.ErrorT.value.format(
+            identifier=error.identifier, type_mismatched=type_mismatch_str, type_required=type_required_str)
+
 
         print(f"\n{formatted_str}! See line {error.lineNumber}")

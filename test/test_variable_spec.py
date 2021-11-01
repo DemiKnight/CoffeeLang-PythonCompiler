@@ -13,7 +13,11 @@ class TestVariableSpec:
         """)
 
         expected_calls = defaultCalls + [
-            TreeVisit("visitGlobal_decl", None)
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
         ]
 
         # When
@@ -33,10 +37,14 @@ class TestVariableSpec:
 
         expected_calls = defaultCalls + [
             TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
-            TreeVisit("visitLocation", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
             TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
             TreeVisit("visitLocation", "int"),
         ]
 
@@ -55,7 +63,16 @@ class TestVariableSpec:
         """)
 
         expected_calls = defaultCalls + [
-
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
+            # TODO Think
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "float"),
+            TreeVisit("visitExpr", "float"),
+            TreeVisit("visitLocation", "float"),
         ]
 
         # When
@@ -64,7 +81,7 @@ class TestVariableSpec:
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert visitor_fixture.errors == [
-            SemanticsError(2,y,ErrorType.VAR_ASSIGN_TYPE_MISMATCH,"int","float")
+            SemanticsError(2, "y", ErrorType.VAR_ASSIGN_TYPE_MISMATCH, "int", "float")
         ]
 
     def test_handle_existing_variable_name_global(self, visitor_fixture):
@@ -76,6 +93,10 @@ class TestVariableSpec:
 
         expected_calls = defaultCalls + [
             TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
             TreeVisit("visitGlobal_decl", None)
         ]
 
@@ -100,6 +121,10 @@ class TestVariableSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitVar_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
             TreeVisit("visitVar_decl", None)
         ]
 
@@ -123,8 +148,16 @@ class TestVariableSpec:
 
         expected_calls = defaultCalls + [
             TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
             TreeVisit("visitBlock", None),
-            TreeVisit("visitVar_decl", None)
+            TreeVisit("visitVar_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int")
         ]
 
         # When

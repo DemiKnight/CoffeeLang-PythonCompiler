@@ -29,25 +29,24 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
     def declareVar(self, scope_context: int, line_number: int, var_type: str, context: CoffeeParser.Var_assignContext):
         variable_id = context.var().ID().getText()
-        variable_size = 8
-        variable_array = False
-        variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_array, line_number)
-
-        variable_value_type = self.visit(context.expr())
-
-        # breakpoint()
-
         if self.stbl.peek(variable_id) is not None:
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
-        elif variable_value_type != var_type:
-            self.errors.append(
-                SemanticsError(line_number,
-                               variable_id,
-                               ErrorType.VAR_ASSIGN_TYPE_MISMATCH,
-                               variable_value_type,
-                               var_type))
         else:
-            self.stbl.pushVar(variable_def)
+            variable_size = 8
+            variable_array = False
+            variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_array, line_number)
+
+            variable_value_type = self.visit(context.expr())
+
+            if variable_value_type != var_type:
+                self.errors.append(
+                    SemanticsError(line_number,
+                                   variable_id,
+                                   ErrorType.VAR_ASSIGN_TYPE_MISMATCH,
+                                   variable_value_type,
+                                   var_type))
+            else:
+                self.stbl.pushVar(variable_def)
 
     def visit(self, tree):
         if self.entranceFlag:

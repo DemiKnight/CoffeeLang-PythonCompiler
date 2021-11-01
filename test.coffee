@@ -22,5 +22,5 @@
 //}
 //foo();
 
-float a;
-return (bool) a + 2;
+int x = 12;
+int z = x;
