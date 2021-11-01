@@ -1,20 +1,26 @@
 import unittest
 
+from VisitorSpec import VisitorSpec, createTree
+from TestUtilities import TreeVisit
 
-class MyTestCase(unittest.TestCase):
 
-    def assignStub(self, typeAssign: str, typeValue: str) -> str:
-        f"""
-        {typeAssign} a = {typeValue}
-        """
+class VariableSpec(VisitorSpec):
 
-    def test_something(self):
+    def test_something2(self):
+        # self.ignoreTest(VariableSpec.test_something2)
         # Given
-        testProg = """
+        test_prog = createTree("""
         int prog = 12;
-        """
+        """)
 
-        self.assertEqual(True, False)  # add assertion here
+        expected_calls = self.defaultCalls + [
+            # TreeVisit("visitMe", None)
+        ]
+        # when
+        self.target.visit(test_prog)
+
+        # then
+        self.assertListEqual(self.defaultCalls, expected_calls, "")
 
 
 if __name__ == '__main__':
