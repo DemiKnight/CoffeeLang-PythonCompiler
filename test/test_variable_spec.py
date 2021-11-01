@@ -23,8 +23,8 @@ class TestVariableSpec:
         assert trail_values(visitor_fixture.trail) == expected_calls
         assert len(visitor_fixture.errors) == 0
 
-    @pytest.mark.skip
-    def test_usage(self, visitor_fixture):
+
+    def test_location_assign(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         int x = 12;
@@ -33,9 +33,11 @@ class TestVariableSpec:
 
         expected_calls = defaultCalls + [
             TreeVisit("visitGlobal_decl", None),
-            TreeVisit("visitExpr", None),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visitLocation", "int"),
             TreeVisit("visitGlobal_decl", None),
-            TreeVisit("visitExpr", None),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visitLocation", "int"),
         ]
 
         # When
@@ -44,6 +46,26 @@ class TestVariableSpec:
         # Then
         assert trail_values(visitor_fixture.trail) == expected_calls
         assert len(visitor_fixture.errors) == 0
+
+    def test_location_assign_type_mismatch(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        int x = 12;
+        float y = x;
+        """)
+
+        expected_calls = defaultCalls + [
+
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert list(visitor_fixture.trail.values()) == expected_calls
+        assert visitor_fixture.errors == [
+            SemanticsError(2,y,ErrorType.VAR_ASSIGN_TYPE_MISMATCH,"int","float")
+        ]
 
     def test_handle_existing_variable_name_global(self, visitor_fixture):
         # Given

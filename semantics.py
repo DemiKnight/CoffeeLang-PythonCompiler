@@ -8,7 +8,7 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
 
 from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable, Var
-from Utils import SemanticsError, ErrorType, printSemanticErrors
+from Utils import SemanticsError, ErrorType, print_semantic_errors
 
 
 class TypePrecedence(Enum):
@@ -20,9 +20,11 @@ class TypePrecedence(Enum):
 
 class CoffeeTreeVisitor(CoffeeVisitor):
     errors: List[SemanticsError]
+    entranceFlag: bool
 
     def __init__(self):
         self.stbl = SymbolTable()
+        self.entranceFlag = False
         self.errors = list()
 
     def declareVar(self, scope_context: int, line_number: int, var_type: str, context: CoffeeParser.Var_assignContext):
@@ -30,15 +32,32 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         variable_size = 8
         variable_array = False
         variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_array, line_number)
+
+        variable_value_type = self.visit(context.expr())
+
+        # breakpoint()
+
         if self.stbl.peek(variable_id) is not None:
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
+        elif variable_value_type != var_type:
+            self.errors.append(
+                SemanticsError(line_number,
+                               variable_id,
+                               ErrorType.VAR_ASSIGN_TYPE_MISMATCH,
+                               variable_value_type,
+                               var_type))
         else:
             self.stbl.pushVar(variable_def)
 
     def visit(self, tree):
-        value = super().visit(tree)
-        printSemanticErrors(self.errors)
-        return value
+        if self.entranceFlag:
+            return super().visit(tree)
+        else:
+            self.entranceFlag = True
+            value = super().visit(tree)
+            print_semantic_errors(self.errors)
+            return value
+
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
         method = Method("main", "int", ctx.start.line)
@@ -119,7 +138,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             rhs = TypePrecedence[rhsType.upper()] if rhsType is not None else TypePrecedence.NOTHING
 
             return lhsType if lhs.value < rhs.value else rhsType
-
+        elif ctx.data_type() is not None:
+            return ctx.data_type()
         else:
             return self.visitChildren(ctx)
 
@@ -135,7 +155,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         elif ctx.STRING_LIT() is not None:
             return "string"
         else:
-            print("error")  # TODO Maybe error with something.
+            # Should be impossible to get here
+            self.errors.append(SemanticsError(ctx.start.line, ctx.getText(), ErrorType.UNKNOWN_LITERAL_TYPE))
 
     def visitLocation(self, ctx: CoffeeParser.LocationContext):
         location_id: str = ctx.ID().getText()
@@ -144,8 +165,6 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             return self.stbl.find(location_id).data_type
         else:
             self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
-
-        print()
 
 
 if __name__ == "__main__":

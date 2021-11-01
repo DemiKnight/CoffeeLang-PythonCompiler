@@ -23,4 +23,4 @@
 //foo();
 
 float a;
-return a + 2;
+return (bool) a + 2;

@@ -100,8 +100,12 @@ class TestExpressionSpec:
 
         expected_calls = defaultCalls + [
             TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
             TreeVisit("visitBlock", None),
-            TreeVisit('visitReturn', None),
+            TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
