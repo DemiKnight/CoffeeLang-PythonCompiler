@@ -1,8 +1,6 @@
-
 import pytest
 from VisitorSpec import VisitorSpec, createTree
 from TestUtilities import TreeVisit
-
 
 
 class TestVariableSpec(VisitorSpec):
@@ -33,7 +31,6 @@ class TestVariableSpec(VisitorSpec):
         }
         """)
 
-
     @pytest.mark.skip()
     def test_usage(self):
         # Given
@@ -49,11 +46,31 @@ class TestVariableSpec(VisitorSpec):
         int x = 25;
         """)
 
-    @pytest.mark.skip()
     def test_block_scope_declaration(self):
+        # Given
         test_prog = createTree("""
         int x = 22;
         {
             int x = 5;
         }
         """)
+
+        expected_calls = self.defaultCalls + [
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitGlobal_decl", None),
+            TreeVisit("visitVar_decl", None),
+            TreeVisit("visitData_type", "float"),
+            TreeVisit("visitVar_assign", None),
+            TreeVisit("visitVar", None),
+            TreeVisit("visitExpr", None),
+        ]
+
+        # when
+        self.target.visit(test_prog)
+
+        print(self.target.places)
+
+        # then
+        assert expected_calls == self.target.places
+
+

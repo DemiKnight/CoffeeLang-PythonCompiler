@@ -1,54 +1,15 @@
-/*
-  example Coffee program
-*/
-
-//float a = 1;
-//
-//{
-//  int b = 2, b;
-//  int a;
+//int inc(int a) {
+//  return a + 1;
 //}
 //
-//a = a + b;
+//return inc(2);
 
-//void foo(int a, float a, float b) {
-//    int b;
-//    return 0;
-//}
-//
-//int test() {
-//    int x;
-//    return 12;
-//}
-//
-//float a;
-//return a + 2;
-//
-//int ar[2];
-//int ax[0];
-
-//import printf, printf;
-//
-//void foo(int x, int y) {
-//    return 0;
-//}
-//
-//int a = food(1, -2.0, 5);
-
-//float a = 2.1;
-//int b = 2;
-//bool d;
-//return a + 2;
-
-//import printf, printf;
-//void foo(int x, int y) {
-//    return 0;
-//}
-//
-//int a = food(1, -2.0, 5);
-
-int inc(int a) {
-  return a + 1;
+float a = 1;
+{
+  int b = 2, b;
+  int a;
 }
+a = a + b;
 
-return inc(2);
+//int x = 12;
+//int x = 25;

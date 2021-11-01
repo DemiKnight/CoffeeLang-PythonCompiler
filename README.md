@@ -8,12 +8,12 @@ Coffee Lang
 
 To test, inside `CoffeeLang` directory, run `grun Coffee program ../test.coffee -gui`
 
-## Tests
+# Tests
 `test/`
 - `test_variable_spec` - Variable usage
 - ``
 
-### Semantic Rules 
+## Semantic Rules 
 1. Variables must be declared before use 
 2. Variable declarations must have unique identifiers in a scope 
 3. Method declarations (including imported methods) must have unique identifiers in a scope 
@@ -46,3 +46,51 @@ To test, inside `CoffeeLang` directory, run `grun Coffee program ../test.coffee 
   - `test_control_semantic_spec` - rules 9, 10, 11, 12, 15 27,
   - `test_expressions_semantic_spec` - 13, 17, 18, 21, 22, 23, 24, 25, 26
   - `test_arrays_semantic_spec` - 14, 16, 19, 20,
+
+#Coursework - Semantic 
+Semantic Coursework Tasks 1 & 2
+## Task 1 Method Invocation
+
+Create a test source file with the following content:
+```c
+import printf, printf; 
+void foo(int x, int y) { 
+  return 0; 
+} 
+int a = food(1, -2.0, 5);
+```
+Use the supplied Coffee compiler to discover the semantic errors.
+i) Identify all semantic errors (hint: rules 4, 6, 7, 26) in the above code and write code in your
+CoffeeTreeVisitor class to detect the errors.
+
+## Task 2 Arithmetic and Logic
+Create a test source file with the following content:
+```c
+if (true && !1) { 
+  return true; 
+}
+```
+- Identify all semantic errors (hint: rules 8, 9, 11, 22) in the above code and write code in your
+CoffeeTreeVisitor class to detect the errors.
+
+# Coursework - CodeGen
+CodeGen Coursework Tasks 1 & 2
+## Task 1 Expressions
+i) Arithmetic: Create a test source file with the following contents:
+```c
+"int a, b;
+a = 2 + 3 * 4; b = 5 - a % 10;
+return -(a + b);"
+```
+Write a solution which generates the correct assembly code and program output for the above Coffee code.
+
+# Task 2 Methods
+i) Extra Args: Create a test source file with the following contents:
+```c
+int sum(int a, int b, int c, int d, int e, int f, int g) {
+return a + b + c + d + e + f + g;
+}
+return sum(1, 2, 3, 4, 5, 6, 7);
+```
+Write a solution which generates the correct assembly code and program output for the above Coffee code.
+Tip: Due to limited registers, the caller (method_call) will place the 7th argument on the stack, and the callee (method_decl) will read the 7th argument from the stack.
