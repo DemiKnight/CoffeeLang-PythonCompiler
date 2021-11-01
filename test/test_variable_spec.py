@@ -7,7 +7,7 @@ from TestUtilities import TreeVisit
 
 class TestVariableSpec(VisitorSpec):
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_declaration(self):
         # self.ignoreTest(VariableSpec.test_something2)
         # Given
@@ -24,6 +24,7 @@ class TestVariableSpec(VisitorSpec):
         # then
         self.assertListEqual(self.defaultCalls, expected_calls)
 
+    @pytest.mark.skip()
     def test_block_declaration(self):
         test_prog = createTree("""
         int op = 55;
@@ -33,7 +34,7 @@ class TestVariableSpec(VisitorSpec):
         """)
 
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_usage(self):
         # Given
         test_prog = createTree("""
@@ -41,14 +42,14 @@ class TestVariableSpec(VisitorSpec):
         int z = x;
         """)
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_handle_existing_variable_name(self):
         test_prog = createTree("""
         int x = 12;
         int x = 25;
         """)
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_block_scope_declaration(self):
         test_prog = createTree("""
         int x = 22;

@@ -5,6 +5,6 @@ from test.VisitorSpec import VisitorSpec, createTree
 
 class TestArraysSemanticSpec(VisitorSpec):
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_thing(self):
         prog_test = createTree("""""")

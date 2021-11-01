@@ -5,6 +5,6 @@ from test.VisitorSpec import VisitorSpec, createTree
 
 class TestControlSemanticSpec(VisitorSpec):
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.skip()
     def test_control(self):
         test_prog = createTree("""""")
