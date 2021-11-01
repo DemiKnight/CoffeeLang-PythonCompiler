@@ -50,11 +50,19 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             variable_size = 8
             variable_array = False
             variable_def = Var(variable_id, variable_type, variable_size, Var.GLOBAL, variable_array, line_number)
+            print(variable_def)
             self.stbl.pushVar(variable_def)
 
-
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
-        return super().visitVar_decl(ctx)
+        line_number = ctx.start.line
+        variable_type = ctx.data_type().getText()
+        for index in range(len(ctx.var_assign())):
+            variable_id = ctx.var_assign(index).var().ID().getText()
+            variable_size = 8
+            variable_array = False
+            variable_def = Var(variable_id, variable_type, variable_size, Var.LOCAL, variable_array, line_number)
+            print(variable_def.name)
+            self.stbl.pushVar(variable_def)
 
     def visitData_type(self, ctx: CoffeeParser.Data_typeContext):
         return super().visitData_type(ctx)

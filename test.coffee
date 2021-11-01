@@ -4,12 +4,17 @@
 //
 //return inc(2);
 
-float a = 1;
-{
-  int b = 2, b;
-  int a;
-}
-a = a + b;
+//float a = 1;
+//{
+//  int b = 2, b;
+//  int a;
+//}
+//a = a + b;
 
 //int x = 12;
 //int x = 25;
+
+int x = 22;
+{
+    int x = 5;
+}

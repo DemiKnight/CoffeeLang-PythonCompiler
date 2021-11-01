@@ -1,4 +1,3 @@
-import unittest
 import pytest
 
 from typing import List
@@ -18,9 +17,9 @@ def createTree(source_str: str) -> ParserRuleContext:
 
 
 defaultCalls: List[TreeVisit] = [
+    TreeVisit("visit", None),
     TreeVisit("visitProgram", None)
 ]
-
 
 @pytest.fixture(autouse=True)
 def visitor_fixture():

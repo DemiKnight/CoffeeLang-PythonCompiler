@@ -1,5 +1,5 @@
 import pytest
-from VisitorSpec import createTree, defaultCalls
+from VisitorSpec import *
 from TestUtilities import TreeVisit
 
 
@@ -56,21 +56,15 @@ class TestVariableSpec:
         """)
 
         expected_calls = defaultCalls + [
-            TreeVisit("visitBlock", None),
             TreeVisit("visitGlobal_decl", None),
-            TreeVisit("visitVar_decl", None),
-            TreeVisit("visitData_type", "float"),
-            TreeVisit("visitVar_assign", None),
-            TreeVisit("visitVar", None),
-            TreeVisit("visitExpr", None),
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitVar_decl", None)
         ]
 
         # when
         visitor_fixture.visit(test_prog)
 
-        print(visitor_fixture.places)
-
         # then
         assert visitor_fixture.places == expected_calls
-
+        assert len(visitor_fixture.errors) == 0
 
