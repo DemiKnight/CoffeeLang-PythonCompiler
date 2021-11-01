@@ -32,9 +32,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         if self.stbl.peek(variable_id) is not None:
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
         else:
-            variable_size = 8
-            variable_array = False
-            variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_array, line_number)
+            variable_is_array = context.var().INT_LIT() is not None
+            variable_size = int(context.var().INT_LIT().getText())*64 if variable_is_array else 8
+
+            if variable_is_array and int(context.var().INT_LIT().getText()) <= 0:
+                self.errors.append(SemanticsError(line_number, variable_id,ErrorType.ARRAY_SIZE_ZERO_OR_LESS))
+
+            variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_is_array, line_number)
 
             variable_value_type = self.visit(context.expr()) if context.expr() is not None else None
 

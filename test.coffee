@@ -22,4 +22,5 @@
 //}
 //foo();
 
-int myArray[0];
+int myArray[1];
+myArray[0] = 22;
