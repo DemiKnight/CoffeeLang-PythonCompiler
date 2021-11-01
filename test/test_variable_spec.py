@@ -68,11 +68,11 @@ class TestVariableSpec:
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLiteral", "int"),
-            # TODO Think
             TreeVisit("visitGlobal_decl", None),
-            TreeVisit("visit", "float"),
-            TreeVisit("visitExpr", "float"),
-            TreeVisit("visitLocation", "float"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLocation", "int"),
         ]
 
         # When
