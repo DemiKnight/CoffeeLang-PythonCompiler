@@ -15,9 +15,11 @@ class TestExpressionSpec:
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "int"),
+            TreeVisit('visit', 'int'),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLiteral", "int"),
+            TreeVisit('visit', 'int'),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLiteral", "int"),
@@ -30,7 +32,7 @@ class TestExpressionSpec:
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert len(visitor_fixture.errors) == 0
 
-    def test_literal_char(self, visitor_fixture):
+    def test_literal_float(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         {
@@ -43,9 +45,11 @@ class TestExpressionSpec:
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "float"),
+            TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
             TreeVisit("visit", "float"),
             TreeVisit("visitLiteral", "float"),
+            TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
             TreeVisit("visit", "float"),
             TreeVisit("visitLiteral", "float"),
@@ -99,9 +103,11 @@ class TestExpressionSpec:
             TreeVisit("visitBlock", None),
             TreeVisit('visitReturn', None),
             TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLocation", "int"),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLiteral", "int"),
@@ -123,9 +129,11 @@ class TestExpressionSpec:
             TreeVisit("visitBlock", None),
             TreeVisit('visitReturn', None),
             TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", None),
             TreeVisit("visitExpr", None),
             TreeVisit("visit", None),
             TreeVisit("visitLocation", None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitLiteral", "int"),
@@ -140,9 +148,97 @@ class TestExpressionSpec:
             SemanticsError(1, "a", ErrorType.VAR_NOT_FOUND)
         ]
 
-    @pytest.mark.skip
-    def test_order_precedence(self, visitor_fixture):
-        print()
+    def test_order_precedence_float_int(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        {
+            return 2 + 3.3;
+        }
+        """)
+
+        expected_calls = defaultCalls + [
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitReturn", None),
+            TreeVisit("visitExpr", "float"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
+            TreeVisit("visit", "float"),
+            TreeVisit("visitExpr", "float"),
+            TreeVisit("visit", "float"),
+            TreeVisit("visitLiteral", "float"),
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert list(visitor_fixture.trail.values()) == expected_calls
+        assert len(visitor_fixture.errors) == 0
+
+    def test_order_precedence_bool_int(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        {
+            return 2 + true;
+        }
+        """)
+
+        # TODO Print error
+        expected_calls = defaultCalls + [
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitReturn", None),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitExpr", "int"),
+            TreeVisit("visit", "int"),
+            TreeVisit("visitLiteral", "int"),
+            TreeVisit("visit", "bool"),
+            TreeVisit("visitExpr", "bool"),
+            TreeVisit("visit", "bool"),
+            TreeVisit("visitLiteral", "bool"),
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert list(visitor_fixture.trail.values()) == expected_calls
+        assert len(visitor_fixture.errors) == 0
+
+    def test_order_precedence_bool_float(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        {
+            return 2.2 + true;
+        }
+        """)
+
+        # TODO Print error
+        expected_calls = defaultCalls + [
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitReturn", None),
+            TreeVisit("visitExpr", "float"),
+            TreeVisit("visit", "float"),
+            TreeVisit("visitExpr", "float"),
+            TreeVisit("visit", "float"),
+            TreeVisit("visitLiteral", "float"),
+            TreeVisit("visit", "bool"),
+            TreeVisit("visitExpr", "bool"),
+            TreeVisit("visit", "bool"),
+            TreeVisit("visitLiteral", "bool"),
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert list(visitor_fixture.trail.values()) == expected_calls
+        assert len(visitor_fixture.errors) == 0
 
     @pytest.mark.skip
     def test_data_type_returned(self, visitor_fixture):

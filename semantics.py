@@ -15,6 +15,7 @@ class TypePrecedence(Enum):
     FLOAT = 0
     INT = 1
     BOOL = 2
+    NOTHING = 99
 
 
 class CoffeeTreeVisitor(CoffeeVisitor):
@@ -90,7 +91,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 method_def.pushParam(param_type)
 
                 param_def = Var(param_id, param_type, param_size, Var.LOCAL, param_is_array, line_number)
-                self.stbl.pushVar(param_def) # TODO Might be incorrect!
+                self.stbl.pushVar(param_def)  # TODO Might be incorrect!
 
         self.visit(ctx.block())
         self.stbl.popFrame()
@@ -104,15 +105,25 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             self._method_impl(line_number, method_id, ctx)
 
-    def visitExpr(self, ctx:CoffeeParser.ExprContext):
+    def visitExpr(self, ctx: CoffeeParser.ExprContext):
         if ctx.literal() is not None:
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
             return self.visit(ctx.location())
+        elif len(ctx.expr()) == 2:
+            # If location, could return missing variable type.
+            lhsType: str = self.visit(ctx.expr(0))
+            rhsType: str = self.visit(ctx.expr(1))
+
+            lhs = TypePrecedence[lhsType.upper()] if lhsType is not None else TypePrecedence.NOTHING
+            rhs = TypePrecedence[rhsType.upper()] if rhsType is not None else TypePrecedence.NOTHING
+
+            return lhsType if lhs.value < rhs.value else rhsType
+
         else:
             return self.visitChildren(ctx)
 
-    def visitLiteral(self, ctx:CoffeeParser.LiteralContext):
+    def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
         if ctx.INT_LIT() is not None:
             return "int"
         elif ctx.bool_lit() is not None:
@@ -124,9 +135,9 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         elif ctx.STRING_LIT() is not None:
             return "string"
         else:
-            print("error") # TODO Maybe error with something.
+            print("error")  # TODO Maybe error with something.
 
-    def visitLocation(self, ctx:CoffeeParser.LocationContext):
+    def visitLocation(self, ctx: CoffeeParser.LocationContext):
         location_id: str = ctx.ID().getText()
 
         if self.stbl.peek(location_id) is not None:
@@ -135,6 +146,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
 
         print()
+
 
 if __name__ == "__main__":
     # load source code
