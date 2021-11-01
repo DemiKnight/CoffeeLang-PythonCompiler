@@ -40,7 +40,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         return value
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
-        self.stbl.pushFrame(ctx)
+        method = Method("main", "int", ctx.start.line)
+        self.stbl.pushFrame(method)
         self.visitChildren(ctx)
         self.stbl.popFrame()
         return None
@@ -103,6 +104,37 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             self._method_impl(line_number, method_id, ctx)
 
+    def visitExpr(self, ctx:CoffeeParser.ExprContext):
+        if ctx.literal() is not None:
+            return self.visit(ctx.literal())
+        elif ctx.location() is not None:
+            return self.visit(ctx.location())
+        else:
+            return self.visitChildren(ctx)
+
+    def visitLiteral(self, ctx:CoffeeParser.LiteralContext):
+        if ctx.INT_LIT() is not None:
+            return "int"
+        elif ctx.bool_lit() is not None:
+            return "bool"
+        elif ctx.FLOAT_LIT() is not None:
+            return "float"
+        elif ctx.CHAR_LIT() is not None:
+            return "char"
+        elif ctx.STRING_LIT() is not None:
+            return "string"
+        else:
+            print("error") # TODO Maybe error with something.
+
+    def visitLocation(self, ctx:CoffeeParser.LocationContext):
+        location_id: str = ctx.ID().getText()
+
+        if self.stbl.peek(location_id) is not None:
+            return self.stbl.find(location_id).data_type
+        else:
+            self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
+
+        print()
 
 if __name__ == "__main__":
     # load source code

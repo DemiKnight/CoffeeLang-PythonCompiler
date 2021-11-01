@@ -17,7 +17,10 @@
 //int x = 12;
 //int z = x;
 
-void foo() {
+//void foo() {
+//
+//}
+//foo();
 
-}
-foo();
+float a;
+return a + 2;

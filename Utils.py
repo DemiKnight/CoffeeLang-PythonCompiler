@@ -6,7 +6,7 @@ from typing import List
 
 
 class ErrorType(Enum):
-    VAR_NOT_FOUND = "Variable {identifier} not found"
+    VAR_NOT_FOUND = "Variable {identifier} not defined in scope"
     VAR_ALREADY_DEFINED = "Variable {identifier} already defined"
     VAR_PARAM_ALREADY_DEFINED = "Parameter {identifier} already defined"
     METHOD_ALREADY_DEFINED = "Method {identifier} already defined!"

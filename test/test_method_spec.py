@@ -3,23 +3,17 @@ from VisitorSpec import *
 
 
 class TestMethodSpec:
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_declare_empty_function(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        void foo() {
-            
-        }
-        foo();
+        void foo(int a) {}
         """)
 
         expected_calls = defaultCalls + [
             TreeVisit("visitMethod_decl", None),
-            TreeVisit("visitReturn_type", None),
+            TreeVisit("visit", None),
             TreeVisit("visitBlock", None),
-            TreeVisit("visitBlock", None),
-            # TreeVisit("visitEval", None),
-            TreeVisit("visitMethod_call", None)
         ]
 
         # When
