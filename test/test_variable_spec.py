@@ -2,7 +2,7 @@ import pytest
 
 from Utils import SemanticsError, ErrorType
 from VisitorSpec import *
-from TestUtilities import TreeVisit
+from TestUtilities import TreeVisit, trail_values
 from semantics import CoffeeTreeVisitor
 
 
@@ -22,7 +22,7 @@ class TestVariableSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert visitor_fixture.places == expected_calls
+        assert trail_values(visitor_fixture.trail) == expected_calls
         assert len(visitor_fixture.errors) == 0
 
     @pytest.mark.skip
@@ -44,7 +44,7 @@ class TestVariableSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert visitor_fixture.places == expected_calls
+        assert trail_values(visitor_fixture.trail) == expected_calls
         assert len(visitor_fixture.errors) == 0
 
     def test_handle_existing_variable_name_global(self, visitor_fixture):
@@ -63,7 +63,7 @@ class TestVariableSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert visitor_fixture.places == expected_calls
+        assert trail_values(visitor_fixture.trail) == expected_calls
         assert visitor_fixture.errors == [
             SemanticsError(2, "x", ErrorType.VAR_ALREADY_DEFINED)
         ]
@@ -87,7 +87,7 @@ class TestVariableSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert visitor_fixture.places == expected_calls
+        assert trail_values(visitor_fixture.trail) == expected_calls
         assert visitor_fixture.errors == [
             SemanticsError(3, "x", ErrorType.VAR_ALREADY_DEFINED)
         ]
@@ -110,8 +110,6 @@ class TestVariableSpec:
         # When
         visitor_fixture.visit(test_prog)
 
-        print(visitor_fixture.trail.values())
-
         # Then
-        assert visitor_fixture.places == expected_calls
+        assert trail_values(visitor_fixture.trail) == expected_calls
         assert len(visitor_fixture.errors) == 0

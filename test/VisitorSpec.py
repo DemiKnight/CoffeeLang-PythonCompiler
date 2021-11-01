@@ -23,4 +23,4 @@ defaultCalls: List[TreeVisit] = [
 
 @pytest.fixture(autouse=True)
 def visitor_fixture():
-    return StubbedCoffeeTreeVisitor()
+    yield StubbedCoffeeTreeVisitor()
