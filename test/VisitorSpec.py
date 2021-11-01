@@ -1,4 +1,6 @@
 import unittest
+import pytest
+
 from typing import List
 
 from antlr4 import InputStream, CommonTokenStream, ParserRuleContext
@@ -15,25 +17,11 @@ def createTree(source_str: str) -> ParserRuleContext:
     return parser.program()
 
 
-class VisitorSpec(unittest.TestCase):
-    target: StubbedCoffeeTreeVisitor
-    defaultCalls: List[TreeVisit]
-
-    @staticmethod
-    def prepTestName(test_name: str):
-        return test_name.replace("test_", "").replace("_", " ")
-
-    def ignoreTest(self, func):
-        self.skipTest(f"Ignoring test `{self.prepTestName(func.__name__)}`")
-
-    def setUp(self) -> None:
-        self.target = StubbedCoffeeTreeVisitor()
-        self.defaultCalls = [
-            TreeVisit("visitProgram", None)
-        ]
-        super().setUp()
+defaultCalls: List[TreeVisit] = [
+    TreeVisit("visitProgram", None)
+]
 
 
-
-if __name__ == '__main__':
-    unittest.main()
+@pytest.fixture(autouse=True)
+def visitor_fixture():
+    return StubbedCoffeeTreeVisitor()

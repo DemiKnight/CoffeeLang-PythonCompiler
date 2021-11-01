@@ -1,9 +1,10 @@
 import pytest
 
-from test.VisitorSpec import VisitorSpec, createTree
+from test.VisitorSpec import createTree
 
-class TestExpressionsSemanticSpec(VisitorSpec):
+
+class TestExpressionsSemanticSpec:
 
     @pytest.mark.skip()
-    def test_expressions(self):
+    def test_expressions(self, visitor_fixture):
         test_prog = createTree("""""")

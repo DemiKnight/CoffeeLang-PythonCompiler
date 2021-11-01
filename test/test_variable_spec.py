@@ -1,9 +1,9 @@
 import pytest
-from VisitorSpec import VisitorSpec, createTree
+from VisitorSpec import createTree, defaultCalls
 from TestUtilities import TreeVisit
 
 
-class TestVariableSpec(VisitorSpec):
+class TestVariableSpec:
 
     @pytest.mark.skip()
     def test_declaration(self):
@@ -13,14 +13,14 @@ class TestVariableSpec(VisitorSpec):
         int prog = 12;
         """)
 
-        expected_calls = self.defaultCalls + [
+        expected_calls = defaultCalls + [
             # TreeVisit("visitMe", None)
         ]
         # when
         self.target.visit(test_prog)
 
         # then
-        self.assertListEqual(self.defaultCalls, expected_calls)
+        self.assertListEqual(defaultCalls, expected_calls)
 
     @pytest.mark.skip()
     def test_block_declaration(self):
@@ -46,7 +46,7 @@ class TestVariableSpec(VisitorSpec):
         int x = 25;
         """)
 
-    def test_block_scope_declaration(self):
+    def test_block_scope_declaration(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         int x = 22;
@@ -55,7 +55,7 @@ class TestVariableSpec(VisitorSpec):
         }
         """)
 
-        expected_calls = self.defaultCalls + [
+        expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitGlobal_decl", None),
             TreeVisit("visitVar_decl", None),
@@ -66,11 +66,11 @@ class TestVariableSpec(VisitorSpec):
         ]
 
         # when
-        self.target.visit(test_prog)
+        visitor_fixture.visit(test_prog)
 
-        print(self.target.places)
+        print(visitor_fixture.places)
 
         # then
-        assert expected_calls == self.target.places
+        assert visitor_fixture.places == expected_calls
 
 
