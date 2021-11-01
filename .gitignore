@@ -5,3 +5,5 @@ venv/
 *.tokens
 *.java
 *.s
+
+.pytest_cache/

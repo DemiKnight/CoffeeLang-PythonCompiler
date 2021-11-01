@@ -1,11 +1,12 @@
 import unittest
-
+import pytest
 from VisitorSpec import VisitorSpec, createTree
 from TestUtilities import TreeVisit
 
 
-class VariableSpec(VisitorSpec):
+class TestVariableSpec(VisitorSpec):
 
+    @pytest.mark.skip(reason="TODO")
     def test_something2(self):
         # self.ignoreTest(VariableSpec.test_something2)
         # Given
@@ -20,7 +21,7 @@ class VariableSpec(VisitorSpec):
         self.target.visit(test_prog)
 
         # then
-        self.assertListEqual(self.defaultCalls, expected_calls, "")
+        self.assertListEqual(self.defaultCalls, expected_calls)
 
 
 if __name__ == '__main__':
