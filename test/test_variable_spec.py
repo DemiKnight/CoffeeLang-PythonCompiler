@@ -110,6 +110,8 @@ class TestVariableSpec:
         # When
         visitor_fixture.visit(test_prog)
 
+        print(visitor_fixture.trail.values())
+
         # Then
         assert visitor_fixture.places == expected_calls
         assert len(visitor_fixture.errors) == 0

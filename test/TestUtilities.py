@@ -1,8 +1,11 @@
 from dataclasses import dataclass
-from typing import List, Any
+from typing import List, Any, Dict, Callable
+
+from antlr4 import ParserRuleContext
 
 from CoffeeLang.CoffeeParser import CoffeeParser
 from semantics import CoffeeTreeVisitor
+import uuid
 
 @dataclass
 class TreeVisit:
@@ -12,39 +15,74 @@ class TreeVisit:
 
 class StubbedCoffeeTreeVisitor(CoffeeTreeVisitor):
     places: List[TreeVisit]
+    trail: Dict[str, TreeVisit]
+
+    def _trail_add(self, visit: TreeVisit) -> str:
+        setKey = str(uuid.uuid4())
+        self.trail[setKey] = visit
+        return setKey
+
+    def _handle(self, func_name: str, func_context: ParserRuleContext, func: Callable[..., Any]):
+        key = self._trail_add(TreeVisit(func_name, None))
+        self.trail[key].returnValue = func(func_context)
+        return self.trail[key].returnValue
 
     def places_order(self):
         return self.places.reverse()
 
     def __init__(self):
         self.places = list()
+        self.trail = dict()
         super().__init__()
 
     def visit(self, tree):
         self.places.append(TreeVisit("visit", None))
-        super().visit(tree)
+
+        return self._handle("visit", tree, super().visit)
+
+        # key = self._trail_add(TreeVisit("visit", None))
+        # self.trail[key].returnValue = super().visit(tree)
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
         self.places.append(TreeVisit("visitProgram", None))
-        super().visitProgram(ctx)
+
+        return self._handle("visitProgram", ctx, super().visitProgram)
+        # key = self._trail_add(TreeVisit("visitProgram", None))
+        # self.trail[key].returnValue = super().visitProgram(ctx)
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
-        return_value = super().visitImport_stmt(ctx)
-        self.places.append(TreeVisit("visitImport_stmt", return_value))
-        return return_value
+        key = self._trail_add(TreeVisit("visitImport_stmt", None))
+
+        return self._handle("visitImport_stmt", ctx, super().visitImport_stmt)
+        # self.trail[key].returnValue = super().visitImport_stmt(ctx)
+        # return self.trail[key].returnValue
 
     def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
         self.places.append(TreeVisit("visitGlobal_decl", None))
-        super().visitGlobal_decl(ctx)
+
+        return self._handle("visitGlobal_decl", ctx, super().visitGlobal_decl)
+
+        # key = self._trail_add(TreeVisit("visitGlobal_decl", None))
+        # self.trail[key].returnValue = super().visitGlobal_decl(ctx)
+        # return self.trail[key].returnValue
 
     def visitVar_decl(self, ctx: CoffeeParser.Var_declContext):
         self.places.append(TreeVisit("visitVar_decl", None))
-        super().visitVar_decl(ctx)
+        return self._handle("visitVar_decl", ctx, super().visitVar_decl)
+        # key = self._trail_add(TreeVisit("visitVar_decl", None))
+        # self.trail[key].returnValue = super().visitVar_decl(ctx)
+        # return self.trail[key].returnValue
+
+    def visitBlock(self, ctx: CoffeeParser.BlockContext):
+        self.places.append(TreeVisit("visitBlock", None))
+        return self._handle("visitBlock", ctx, super().visitBlock)
+        # super().visitBlock(ctx)
 
     def visitVar_assign(self, ctx: CoffeeParser.Var_assignContext):
-        return_value = super().visitVar_assign(ctx)
-        self.places.append(TreeVisit("visitVar_assign", return_value))
-        return return_value
+        # return_value = super().visitVar_assign(ctx)
+        return self._handle("visitVar_assign", ctx, super().visitVar_assign)
+        # self.places.append(TreeVisit("visitVar_assign", return_value))
+        # return return_value
 
     def visitVar(self, ctx: CoffeeParser.VarContext):
         return_value = super().visitVar(ctx)
@@ -70,10 +108,6 @@ class StubbedCoffeeTreeVisitor(CoffeeTreeVisitor):
         return_value = super().visitParam(ctx)
         self.places.append(TreeVisit("visitParam", return_value))
         return return_value
-
-    def visitBlock(self, ctx: CoffeeParser.BlockContext):
-        self.places.append(TreeVisit("visitBlock", None))
-        super().visitBlock(ctx)
 
     def visitEval(self, ctx: CoffeeParser.EvalContext):
         return_value = super().visitEval(ctx)
