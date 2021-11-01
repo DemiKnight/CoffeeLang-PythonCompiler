@@ -69,17 +69,39 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.declareVar(Var.LOCAL, line_number, variable_type, ctx.var_assign(index))
         return None
 
-    def visitData_type(self, ctx: CoffeeParser.Data_typeContext):
-        return super().visitData_type(ctx)
+    def _method_impl(self, line_number: int, method_id: str, ctx: CoffeeParser.Method_declContext):
+        method_type = ctx.return_type().getText()
 
-    def visitVar_assign(self, ctx: CoffeeParser.Var_assignContext):
-        return super().visitVar_assign(ctx)
+        method_def = Method(method_id, method_type, line_number)
+        self.stbl.pushMethod(method_def)
+        self.stbl.pushFrame(method_def)
 
-    def visitVar(self, ctx: CoffeeParser.VarContext):
-        return super().visitVar(ctx)
+        for index in range(len(ctx.param())):
+            param_id = ctx.param(index).ID().getText()
+            param_type = ctx.param(index).data_type().getText()
+            param_size = 8
+            param_is_array = False
 
-    def visitExpr(self, ctx: CoffeeParser.ExprContext):
-        return super().visitExpr(ctx)
+            if self.stbl.peek(param_id) is not None:
+                self.errors.append(
+                    SemanticsError(ctx.param(index).start.line, param_id, ErrorType.VAR_PARAM_ALREADY_DEFINED))
+            else:
+                method_def.pushParam(param_type)
+
+                param_def = Var(param_id, param_type, param_size, Var.LOCAL, param_is_array, line_number)
+                self.stbl.pushVar(param_def) # TODO Might be incorrect!
+
+        self.visit(ctx.block())
+        self.stbl.popFrame()
+
+    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
+        line_number = ctx.start.line
+        method_id = ctx.ID().getText()
+
+        if self.stbl.peek(method_id) is not None:
+            self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_ALREADY_DEFINED))
+        else:
+            self._method_impl(line_number, method_id, ctx)
 
 
 if __name__ == "__main__":

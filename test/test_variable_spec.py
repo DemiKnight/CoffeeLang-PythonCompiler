@@ -1,5 +1,3 @@
-import pytest
-
 from Utils import SemanticsError, ErrorType
 from VisitorSpec import *
 from TestUtilities import TreeVisit, trail_values

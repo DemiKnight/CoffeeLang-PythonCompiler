@@ -14,5 +14,10 @@
 //int x = 12;
 //int x = 25;
 
-int x = 12;
-int z = x;
+//int x = 12;
+//int z = x;
+
+void foo() {
+
+}
+foo();
