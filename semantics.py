@@ -109,7 +109,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 method_def.pushParam(param_type)
 
                 param_def = Var(param_id, param_type, param_size, Var.LOCAL, param_is_array, line_number)
-                self.stbl.pushVar(param_def)  # TODO Might be incorrect!
+                # self.stbl.pushVar(param_def)  # TODO Might be incorrect!
 
         self.visit(ctx.block())
         self.stbl.popFrame()
@@ -172,18 +172,35 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         if self.stbl.peek(method_id) is not None:
 
             method_def = self.stbl.find(method_id)
-
+            # TODO Compare parameter list:
+            # - Number of paramters
+            # - Types
             params = list()
 
             for index in range(len(ctx.expr())):
                 visitTest = self.visit(ctx.expr(index))
                 params.append(visitTest)
-            breakpoint()
+            # breakpoint()
             print("...")
 
             print()
         else:
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
+
+    def visitReturn(self, ctx:CoffeeParser.ReturnContext):
+        # Check for method context & if present, check the type. Or void
+        return super().visitReturn(ctx)
+
+    def visitImport_stmt(self, ctx:CoffeeParser.Import_stmtContext):
+        # Duplication & print warning...
+        return super().visitImport_stmt(ctx)
+
+    def visitIf(self, ctx: CoffeeParser.IfContext):
+        # ctx.block() <- visit
+        return super().visitIf(ctx)
+
+
+
 
 if __name__ == "__main__":
     # load source code

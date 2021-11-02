@@ -1,3 +1,5 @@
+import pytest
+
 from Utils import SemanticsError, ErrorType
 from VisitorSpec import *
 
@@ -7,7 +9,7 @@ class TestMethodSpec:
         # Given
         test_prog = createTree("""
         void foo(int a) {}
-        food(2)
+        food(2);
         """)
 
         expected_calls = defaultCalls + [
@@ -60,6 +62,46 @@ class TestMethodSpec:
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert len(visitor_fixture.errors) == 0
+
+    @pytest.mark.skip
+    def test_handle_too_many_parameters_at_call(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_handle_too_few_many_parameters_call(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_handle_parameters_type_mismatch(self, visitor_fixture):
+        print()
+
+    @pytest .mark.skip
+    def test_handle_void_func_in_expression(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_handle_function_missing_return(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_handle_void_returning_value(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_handle_main_return_type_mismatch(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_non_exhaustive_return(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_import_duplicate(self, visitor_fixture):
+        print()
+
+    @pytest.mark.skip
+    def test_import_usage(self, visitor_fixture):
+        print()
 
     @pytest.mark.skip
     def test_declare_basic_func(self, visitor_fixture):
@@ -125,7 +167,7 @@ class TestMethodSpec:
             SemanticsError(1, "a", ErrorType.VAR_PARAM_ALREADY_DEFINED)
         ]
 
-    @pytest.mark.skip
+
     def test_handle_clashing_function_ids(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -133,7 +175,12 @@ class TestMethodSpec:
         void foo() {}
         """)
 
-        expected_calls = defaultCalls + []
+        expected_calls = defaultCalls + [
+            TreeVisit("visitMethod_decl", None),
+            TreeVisit("visit", None),
+            TreeVisit("visitBlock", None),
+            TreeVisit("visitMethod_decl", None)
+        ]
 
         # When
         visitor_fixture.visit(test_prog)
