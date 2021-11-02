@@ -206,16 +206,22 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             methodCxt.has_return = True
 
         if methodCxt is not None and methodCxt.id != "main":
-
             returnValue = self.visit(ctx.expr())
             if methodCxt.return_type == "void" and returnValue is not None:
                 self.errors.append(SemanticsError(ctx.start.line,methodCxt.id, ErrorType.METHOD_VOID_RETURNING_VALUE))
             elif methodCxt.return_type != returnValue:
                 self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_RETURN_TYPE_MISMATCH))
+        elif methodCxt.id == "main":
+            returnValue = self.visit(ctx.expr())
+
+            if returnValue != "int":
+                self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH))
+
+            # breakpoint()
 
         self.stbl.pushMethodContext(methodCxt)
         # Check for method context & if present, check the type. Or void
-        return super().visitReturn(ctx)
+        # return super().visitReturn(ctx)
 
     def visitImport_stmt(self, ctx:CoffeeParser.Import_stmtContext):
         # Duplication & print warning...

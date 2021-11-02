@@ -13,6 +13,7 @@ class TestExpressionSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit('visit', 'int'),
             TreeVisit('visitExpr', 'int'),
             TreeVisit('visit', 'int'),
             TreeVisit("visitExpr", "int"),
@@ -40,6 +41,7 @@ class TestExpressionSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
             TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
@@ -56,7 +58,9 @@ class TestExpressionSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert visitor_fixture.errors == []
+        assert visitor_fixture.errors == [
+            SemanticsError(1,"main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+        ]
 
     @pytest.mark.skip("Need to implement boolean logic.")
     def test_literal_bool(self, visitor_fixture):
@@ -100,6 +104,7 @@ class TestExpressionSpec:
             TreeVisit("visitLiteral", "int"),
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
@@ -126,6 +131,7 @@ class TestExpressionSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit('visitReturn', None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", None),
             TreeVisit("visitExpr", None),
@@ -155,6 +161,7 @@ class TestExpressionSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
             TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
@@ -171,7 +178,9 @@ class TestExpressionSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert len(visitor_fixture.errors) == 0
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+        ]
 
     def test_order_precedence_bool_int(self, visitor_fixture):
         # Given
@@ -179,10 +188,10 @@ class TestExpressionSpec:
         return 2 + true;
         """)
 
-        # TODO Print error
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
             TreeVisit("visitExpr", "int"),
@@ -199,7 +208,7 @@ class TestExpressionSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert len(visitor_fixture.errors) == 0
+        assert visitor_fixture.errors == []
 
     def test_order_precedence_bool_float(self, visitor_fixture):
         # Given
@@ -207,10 +216,10 @@ class TestExpressionSpec:
         return 2.2 + true;
         """)
 
-        # TODO Print error
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
+            TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
             TreeVisit("visit", "float"),
             TreeVisit("visitExpr", "float"),
@@ -227,4 +236,6 @@ class TestExpressionSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert len(visitor_fixture.errors) == 0
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+        ]
