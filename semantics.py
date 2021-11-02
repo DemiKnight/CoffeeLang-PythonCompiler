@@ -105,7 +105,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             else:
                 method_def.pushParam(param_type)
                 param_def = Var(param_id, param_type, param_size, Var.GLOBAL, param_is_array, line_number)
-                self.stbl.pushVar(param_def)  # TODO Might be incorrect!
+                self.stbl.pushVar(param_def)
 
         self.visit(ctx.block())
 
@@ -179,6 +179,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         if self.stbl.peek(method_id) is not None:
 
             method_def: Method = self.stbl.find(method_id)
+
+            if method_def.return_type == "import":
+                print("\nWARNING: Check signature on imported method...\n")
+                return method_def
+
             # TODO Compare parameter list:
             # - Number of paramters
             # - Types
@@ -194,7 +199,6 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                     SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
 
             return method_def
-            # print()
         else:
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 
@@ -224,6 +228,18 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         # return super().visitReturn(ctx)
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
+
+        for index in range(len(ctx.ID())):
+            import_method_id = ctx.ID(index).getText()
+
+            existing_method = self.stbl.find(import_method_id)
+
+            if existing_method is not None:
+                self.errors.append(SemanticsError(ctx.start.line, import_method_id, ErrorType.IMPORT_DUPLICATE))
+            else:
+                method = Method(import_method_id,"import",ctx.start.line)
+                self.stbl.pushMethod(method)
+
         # Duplication & print warning...
         return super().visitImport_stmt(ctx)
 

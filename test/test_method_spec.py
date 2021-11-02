@@ -239,8 +239,6 @@ class TestMethodSpec:
         assert len(visitor_fixture.trail.values()) == 17
         assert visitor_fixture.errors == []
 
-
-    @pytest.mark.skip
     def test_non_exhaustive_return(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -257,25 +255,41 @@ class TestMethodSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert len(visitor_fixture.trail.values()) == 18
+        assert len(visitor_fixture.trail.values()) == 22
         assert visitor_fixture.errors == [
             SemanticsError(1, "foo", ErrorType.METHOD_MISSING_RETURN_NON_EXHAUSTIVE)
         ]
 
-    @pytest.mark.skip
     def test_import_duplicate(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         import printf, printf;
         """)
+        expected_calls = defaultCalls + []
 
-    @pytest.mark.skip
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 3
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "printf", ErrorType.IMPORT_DUPLICATE)
+        ]
+
     def test_import_usage(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         import printf;
-        printf("hello")
+        printf("hello");
         """)
+        expected_calls = defaultCalls + []
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 6
+        assert visitor_fixture.errors == []
 
     @pytest.mark.skip
     def test_declare_basic_func(self, visitor_fixture):
@@ -295,7 +309,7 @@ class TestMethodSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert len(visitor_fixture.errors) == 0
+        assert visitor_fixture.errors == []
 
     @pytest.mark.skip
     def test_handle_clashing_parameter_ids(self, visitor_fixture):
