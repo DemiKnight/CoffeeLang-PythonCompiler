@@ -3,7 +3,45 @@ from VisitorSpec import *
 
 
 class TestMethodSpec:
+    def test_handle_missing_declaration(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        void foo(int a) {}
+        food(2)
+        """)
+
+        expected_calls = defaultCalls + [
+            TreeVisit("visitMethod_decl", None),
+            TreeVisit("visitMethod_call", None)
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 8
+        assert visitor_fixture.errors == [
+            SemanticsError(2, "food", ErrorType.METHOD_NOT_FOUND)
+        ]
+
     # @pytest.mark.skip
+    def test_call_function(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        void foo(int a) {}
+        foo(2);
+        """)
+
+        expected_calls = defaultCalls + [
+
+        ]
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+
+
     def test_declare_empty_function(self, visitor_fixture):
         # Given
         test_prog = createTree("""

@@ -22,5 +22,5 @@
 //}
 //foo();
 
-int myArray[1];
-myArray[0] = 22;
+void foo(int a) {}
+food(2);

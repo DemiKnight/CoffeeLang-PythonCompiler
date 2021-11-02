@@ -165,6 +165,25 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
 
+    def visitMethod_call(self, ctx:CoffeeParser.Method_callContext):
+        line_number = ctx.start.line
+        method_id = ctx.ID().getText()
+
+        if self.stbl.peek(method_id) is not None:
+
+            method_def = self.stbl.find(method_id)
+
+            params = list()
+
+            for index in range(len(ctx.expr())):
+                visitTest = self.visit(ctx.expr(index))
+                params.append(visitTest)
+            breakpoint()
+            print("...")
+
+            print()
+        else:
+            self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 
 if __name__ == "__main__":
     # load source code
