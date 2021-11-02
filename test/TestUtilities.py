@@ -10,7 +10,7 @@ import uuid
 @dataclass
 class TreeVisit:
     method: str
-    returnValue: Any
+    returnValue: Any = None
 
 def trail_values(values: Dict[str, TreeVisit]) -> List[TreeVisit]:
     return list(values.values())

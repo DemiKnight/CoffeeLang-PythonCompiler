@@ -19,8 +19,9 @@ class ErrorType(Enum):
     # Method errors
     METHOD_ALREADY_DEFINED = "Method {identifier} already defined"
     METHOD_NOT_FOUND = "Method {identifier} used before declaration"
-    METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS = ""
+    METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS = "Call to method {identifier} has incorrect argument type(s)"
     METHOD_SIGNATURE_TYPE_MISMATCH_RETURN_VALUE = "Method {identifier} called but return type {type_required}"
+    METHOD_SIGNATURE_ARGUMENT_COUNT = "Call to method {identifier} has incorrect number of parameters"
     METHOD_VOID_RETURNING_VALUE = "Method {identifier} declared void but is returning a value"
     METHOD_MISSING_RETURN = "Method {identifier} missing return"
     METHOD_MISSING_RETURN_NON_EXHAUSTIVE = "Method {identifier} missing return on all branches/paths"

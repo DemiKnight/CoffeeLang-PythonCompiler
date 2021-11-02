@@ -171,7 +171,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
         if self.stbl.peek(method_id) is not None:
 
-            method_def = self.stbl.find(method_id)
+            method_def: Method = self.stbl.find(method_id)
             # TODO Compare parameter list:
             # - Number of paramters
             # - Types
@@ -181,7 +181,10 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 visitTest = self.visit(ctx.expr(index))
                 params.append(visitTest)
             # breakpoint()
-            print("...")
+            if len(params) != len(method_def.param):
+                self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_ARGUMENT_COUNT))
+            elif params != method_def.param:
+                self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
 
             print()
         else:
