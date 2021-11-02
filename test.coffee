@@ -20,5 +20,10 @@
 //int foo() {}
 //int bar() {return 2;}
 
-int foo() {return 2;}
-return 2 + foo();
+int foo(bool value) {
+    if(value) {
+        return 12;
+    } else {
+
+    }
+}

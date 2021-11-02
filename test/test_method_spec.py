@@ -224,6 +224,22 @@ class TestMethodSpec:
             SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
         ]
 
+    def test_parameter_usage(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        int foo(int a) {
+            return 2 + a;
+        }
+        """)
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 17
+        assert visitor_fixture.errors == []
+
+
     @pytest.mark.skip
     def test_non_exhaustive_return(self, visitor_fixture):
         # Given
@@ -236,6 +252,15 @@ class TestMethodSpec:
             }
         }
         """)
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 18
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "foo", ErrorType.METHOD_MISSING_RETURN_NON_EXHAUSTIVE)
+        ]
 
     @pytest.mark.skip
     def test_import_duplicate(self, visitor_fixture):

@@ -33,10 +33,10 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
         else:
             variable_is_array = context.var().INT_LIT() is not None
-            variable_size = int(context.var().INT_LIT().getText())*64 if variable_is_array else 8
+            variable_size = int(context.var().INT_LIT().getText()) * 64 if variable_is_array else 8
 
             if variable_is_array and int(context.var().INT_LIT().getText()) <= 0:
-                self.errors.append(SemanticsError(line_number, variable_id,ErrorType.ARRAY_SIZE_ZERO_OR_LESS))
+                self.errors.append(SemanticsError(line_number, variable_id, ErrorType.ARRAY_SIZE_ZERO_OR_LESS))
 
             variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_is_array, line_number)
 
@@ -67,6 +67,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def visitBlock(self, ctx: CoffeeParser.BlockContext):
         if ctx.LCURLY() is not None:
             self.stbl.pushScope()
+        # breakpoint()
         self.visitChildren(ctx)
 
         if ctx.RCURLY() is not None:
@@ -103,16 +104,14 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                     SemanticsError(ctx.param(index).start.line, param_id, ErrorType.VAR_PARAM_ALREADY_DEFINED))
             else:
                 method_def.pushParam(param_type)
-
-                param_def = Var(param_id, param_type, param_size, Var.LOCAL, param_is_array, line_number)
-                # self.stbl.pushVar(param_def)  # TODO Might be incorrect!
+                param_def = Var(param_id, param_type, param_size, Var.GLOBAL, param_is_array, line_number)
+                self.stbl.pushVar(param_def)  # TODO Might be incorrect!
 
         self.visit(ctx.block())
 
         if method_def.has_return == False and method_def.return_type != "void":
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_MISSING_RETURN))
 
-        print(method_def.has_return)
         self.stbl.popFrame()
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
@@ -168,12 +167,12 @@ class CoffeeTreeVisitor(CoffeeVisitor):
     def visitLocation(self, ctx: CoffeeParser.LocationContext):
         location_id: str = ctx.ID().getText()
 
-        if self.stbl.peek(location_id) is not None:
+        if self.stbl.find(location_id) is not None:
             return self.stbl.find(location_id).data_type
         else:
             self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
 
-    def visitMethod_call(self, ctx:CoffeeParser.Method_callContext) -> Method:
+    def visitMethod_call(self, ctx: CoffeeParser.Method_callContext) -> Method:
         line_number = ctx.start.line
         method_id = ctx.ID().getText()
 
@@ -191,14 +190,15 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             if len(params) != len(method_def.param):
                 self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_ARGUMENT_COUNT))
             elif params != method_def.param:
-                self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
+                self.errors.append(
+                    SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
 
             return method_def
             # print()
         else:
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 
-    def visitReturn(self, ctx:CoffeeParser.ReturnContext):
+    def visitReturn(self, ctx: CoffeeParser.ReturnContext):
         methodCxt: Method = self.stbl.getMethodContext()
 
         # Are we inside a nod
@@ -208,7 +208,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         if methodCxt is not None and methodCxt.id != "main":
             returnValue = self.visit(ctx.expr())
             if methodCxt.return_type == "void" and returnValue is not None:
-                self.errors.append(SemanticsError(ctx.start.line,methodCxt.id, ErrorType.METHOD_VOID_RETURNING_VALUE))
+                self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_VOID_RETURNING_VALUE))
             elif methodCxt.return_type != returnValue:
                 self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_RETURN_TYPE_MISMATCH))
         elif methodCxt.id == "main":
@@ -223,15 +223,20 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         # Check for method context & if present, check the type. Or void
         # return super().visitReturn(ctx)
 
-    def visitImport_stmt(self, ctx:CoffeeParser.Import_stmtContext):
+    def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
         # Duplication & print warning...
         return super().visitImport_stmt(ctx)
 
     def visitIf(self, ctx: CoffeeParser.IfContext):
         # ctx.block() <- visit
+        method_context: Method = self.stbl.getMethodContext()
+
+        condition_type = self.visit(ctx.expr())
+        if condition_type != "bool":
+            self.errors.append(
+                SemanticsError(ctx.start.line, method_context.id, ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH))
+
         return super().visitIf(ctx)
-
-
 
 
 if __name__ == "__main__":
