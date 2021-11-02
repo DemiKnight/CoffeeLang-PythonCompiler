@@ -209,13 +209,20 @@ class TestMethodSpec:
             SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
         ]
 
-
-    @pytest.mark.skip
     def test_handle_main_return_type_mismatch_bool(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         return true;
         """)
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 8
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+        ]
 
     @pytest.mark.skip
     def test_non_exhaustive_return(self, visitor_fixture):
