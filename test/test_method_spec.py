@@ -115,13 +115,22 @@ class TestMethodSpec:
             SemanticsError(2, "foo", ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS)
         ]
 
-    @pytest.mark.skip
     def test_handle_void_func_in_expression(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         void foo(int a) {}
         return 2 + foo(12);
         """)
+        expected_calls = defaultCalls + []
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 20
+        assert visitor_fixture.errors == [
+            SemanticsError(2, "foo", ErrorType.EXPRESSION_USING_VOID_METHOD)
+        ]
 
     @pytest.mark.skip
     def test_handle_function_missing_return(self, visitor_fixture):

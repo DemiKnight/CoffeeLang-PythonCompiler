@@ -128,6 +128,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
             return self.visit(ctx.location())
+        elif ctx.method_call() is not None:
+            methodC: Method = self.visit(ctx.method_call())
+            if methodC.return_type == "void":
+                self.errors.append(SemanticsError(ctx.start.line, methodC.id, ErrorType.EXPRESSION_USING_VOID_METHOD))
+                return None
+            else:
+                return methodC.return_type
         elif len(ctx.expr()) == 2:
             # If location, could return missing variable type.
             lhsType: str = self.visit(ctx.expr(0))
@@ -165,7 +172,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             self.errors.append(SemanticsError(ctx.start.line, location_id, ErrorType.VAR_NOT_FOUND))
 
-    def visitMethod_call(self, ctx:CoffeeParser.Method_callContext):
+    def visitMethod_call(self, ctx:CoffeeParser.Method_callContext) -> Method:
         line_number = ctx.start.line
         method_id = ctx.ID().getText()
 
@@ -180,13 +187,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             for index in range(len(ctx.expr())):
                 visitTest = self.visit(ctx.expr(index))
                 params.append(visitTest)
-            # breakpoint()
             if len(params) != len(method_def.param):
                 self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_ARGUMENT_COUNT))
             elif params != method_def.param:
                 self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
 
-            print()
+            return method_def
+            # print()
         else:
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 

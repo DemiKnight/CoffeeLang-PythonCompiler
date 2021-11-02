@@ -23,4 +23,4 @@
 //foo();
 
 void foo(int a) {}
-food(2);
+return 2 + foo(12);
