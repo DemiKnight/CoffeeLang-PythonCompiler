@@ -155,7 +155,7 @@ class TestMethodSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert len(visitor_fixture.trail.values()) == 10
+        assert len(visitor_fixture.trail.values()) == 14
         assert len(visitor_fixture.errors) == 0
 
     def test_handle_function_missing_return(self, visitor_fixture):
@@ -188,7 +188,7 @@ class TestMethodSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert len(visitor_fixture.trail.values()) == 10
+        assert len(visitor_fixture.trail.values()) == 14
         assert visitor_fixture.errors == [
             SemanticsError(2, "foo", ErrorType.METHOD_VOID_RETURNING_VALUE)
         ]
