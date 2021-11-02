@@ -52,21 +52,17 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             else:
                 self.stbl.pushVar(variable_def)
 
-    def visit(self, tree):
+    def visitProgram(self, ctx: CoffeeParser.ProgramContext):
         if self._entranceFlag:
             return super().visit(tree)
         else:
             self._entranceFlag = True
-            value = super().visit(tree)
-            print_semantic_errors(self.errors)
-            return value
+            main = Method("main", "int", ctx.start.line)
+            self.stbl.pushFrame(main)
+            self.visitChildren(ctx)
+            self.stbl.popFrame()
 
-    def visitProgram(self, ctx: CoffeeParser.ProgramContext):
-        method = Method("main", "int", ctx.start.line)
-        self.stbl.pushFrame(method)
-        self.visitChildren(ctx)
-        self.stbl.popFrame()
-        return None
+            print_semantic_errors(self.errors)
 
     def visitBlock(self, ctx: CoffeeParser.BlockContext):
         if ctx.LCURLY() is not None:
@@ -112,6 +108,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 # self.stbl.pushVar(param_def)  # TODO Might be incorrect!
 
         self.visit(ctx.block())
+
+        if method_def.has_return == False and method_def.return_type != "void":
+            self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_MISSING_RETURN))
+
+        print(method_def.has_return)
         self.stbl.popFrame()
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
@@ -198,6 +199,21 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 
     def visitReturn(self, ctx:CoffeeParser.ReturnContext):
+        methodCxt: Method = self.stbl.getMethodContext()
+
+        # Are we inside a nod
+        if methodCxt is not None:
+            methodCxt.has_return = True
+
+        if methodCxt is not None and methodCxt.id != "main":
+
+            returnValue = self.visit(ctx.expr())
+            if methodCxt.return_type == "void" and returnValue is not None:
+                self.errors.append(SemanticsError(ctx.start.line,methodCxt.id, ErrorType.METHOD_VOID_RETURNING_VALUE))
+            elif methodCxt.return_type != returnValue:
+                self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_RETURN_TYPE_MISMATCH))
+
+        self.stbl.pushMethodContext(methodCxt)
         # Check for method context & if present, check the type. Or void
         return super().visitReturn(ctx)
 

@@ -43,7 +43,6 @@ class TestMethodSpec:
 
         # Then
 
-
     def test_declare_empty_function(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -97,7 +96,6 @@ class TestMethodSpec:
             SemanticsError(2, "foo", ErrorType.METHOD_SIGNATURE_ARGUMENT_COUNT)
         ]
 
-
     def test_handle_parameters_type_mismatch(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -132,14 +130,51 @@ class TestMethodSpec:
             SemanticsError(2, "foo", ErrorType.EXPRESSION_USING_VOID_METHOD)
         ]
 
-    @pytest.mark.skip
+    def test_method_call_in_expression(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        int foo() {return 2;}
+        return 2 + foo();
+        """)
+        expected_calls = defaultCalls + []
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 35
+        assert visitor_fixture.errors == []
+
+    def test_function_with_return(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        int foo() {return 2;}
+        """)
+
+        # WHen
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 10
+        assert len(visitor_fixture.errors) == 0
+
     def test_handle_function_missing_return(self, visitor_fixture):
         # Given
         test_prog = createTree("""
         int foo() {}
         """)
+        expected_calls = defaultCalls + []
 
-    @pytest.mark.skip
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        print(visitor_fixture.trail.values())
+        assert len(visitor_fixture.trail.values()) == 5
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "foo", ErrorType.METHOD_MISSING_RETURN)
+        ]
+
     def test_handle_void_returning_value(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -147,6 +182,16 @@ class TestMethodSpec:
             return 12;
         }
         """)
+        expected_calls = defaultCalls + []
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 10
+        assert visitor_fixture.errors == [
+            SemanticsError(2, "foo", ErrorType.METHOD_VOID_RETURNING_VALUE)
+        ]
 
     @pytest.mark.skip
     def test_handle_main_return_type_mismatch_float(self, visitor_fixture):
@@ -253,7 +298,6 @@ class TestMethodSpec:
         assert visitor_fixture.errors == [
             SemanticsError(1, "a", ErrorType.VAR_PARAM_ALREADY_DEFINED)
         ]
-
 
     def test_handle_clashing_function_ids(self, visitor_fixture):
         # Given

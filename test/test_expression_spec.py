@@ -4,7 +4,6 @@ from VisitorSpec import *
 
 class TestExpressionSpec:
 
-    # @pytest.mark.skip
     def test_literal_int(self, visitor_fixture):
         # Given
         test_prog = createTree("""
@@ -14,7 +13,7 @@ class TestExpressionSpec:
         expected_calls = defaultCalls + [
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
-            TreeVisit("visitExpr", "int"),
+            TreeVisit('visitExpr', 'int'),
             TreeVisit('visit', 'int'),
             TreeVisit("visitExpr", "int"),
             TreeVisit("visit", "int"),
@@ -35,13 +34,10 @@ class TestExpressionSpec:
     def test_literal_float(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        {
-            return 2.2 + 2.2;
-        }
+        return 2.2 + 2.2;
         """)
 
         expected_calls = defaultCalls + [
-            TreeVisit("visitBlock", None),
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "float"),
@@ -60,15 +56,13 @@ class TestExpressionSpec:
 
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
-        assert len(visitor_fixture.errors) == 0
+        assert visitor_fixture.errors == []
 
     @pytest.mark.skip("Need to implement boolean logic.")
     def test_literal_bool(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        {
-            return True && False;
-        }
+        return True && False;
         """)
 
         expected_calls = defaultCalls + [
@@ -155,13 +149,10 @@ class TestExpressionSpec:
     def test_order_precedence_float_int(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        {
-            return 2 + 3.3;
-        }
+        return 2 + 3.3;
         """)
 
         expected_calls = defaultCalls + [
-            TreeVisit("visitBlock", None),
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "float"),
@@ -185,14 +176,11 @@ class TestExpressionSpec:
     def test_order_precedence_bool_int(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        {
-            return 2 + true;
-        }
+        return 2 + true;
         """)
 
         # TODO Print error
         expected_calls = defaultCalls + [
-            TreeVisit("visitBlock", None),
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "int"),
@@ -216,14 +204,11 @@ class TestExpressionSpec:
     def test_order_precedence_bool_float(self, visitor_fixture):
         # Given
         test_prog = createTree("""
-        {
-            return 2.2 + true;
-        }
+        return 2.2 + true;
         """)
 
         # TODO Print error
         expected_calls = defaultCalls + [
-            TreeVisit("visitBlock", None),
             TreeVisit("visitBlock", None),
             TreeVisit("visitReturn", None),
             TreeVisit("visitExpr", "float"),
