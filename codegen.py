@@ -60,7 +60,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
                             "push %rbp\n"
                             "movq %rsp, %rbp\n")
 
-
         for index in range(len(ctx.param())):
             param_id = ctx.param(index).ID().getText()
             param_type = ctx.param(index).data_type().getText()
@@ -76,7 +75,7 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             else:
                 print("TODO")
 
-            breakpoint()
+            # breakpoint()
 
         if ctx.block() is not None:
             self.visit(ctx.block())
@@ -91,6 +90,35 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         self.data += method_def.data
 
         self.stbl.popFrame()
+
+    def visitLiteral(self, ctx:CoffeeParser.LiteralContext):
+        if ctx.INT_LIT() is not None:
+            methodCTx: Method = self.stbl.getMethodContext()
+            methodCTx.body += f"movq ${ctx.INT_LIT()}, %rax\n"
+            breakpoint()
+
+            return ctx.INT_LIT()
+
+    def visitLocation(self, ctx: CoffeeParser.LocationContext):
+        methodCtx: Method = self.stbl.getMethodContext()
+        location_id = ctx.ID().getText()
+
+        var: Var = self.stbl.find(location_id)
+
+        if(var.scope == Var.GLOBAL):
+            pass
+        else:  # Only other scope is Local...
+            methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
+
+        return super().visitLocation(ctx)
+
+    def visitExpr(self, ctx:CoffeeParser.ExprContext):
+        if ctx.literal() is not None:
+            return self.visit(ctx.literal())
+        elif ctx.location() is not None:
+            return self.visit(ctx.location())
+        else:
+            return self.visitChildren(ctx)
 
     def visitBlock(self, ctx:CoffeeParser.BlockContext):
         if ctx.LCURLY() is not None:
