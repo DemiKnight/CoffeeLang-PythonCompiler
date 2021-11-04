@@ -125,8 +125,6 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self._method_impl(line_number, method_id, ctx)
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
-        returnType = None
-        entity_id = None
 
         if ctx.literal() is not None:
             returnType = self.visit(ctx.literal())
@@ -154,7 +152,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             returnType = self.visitChildren(ctx)
 
         if ctx.NOT() is not None and returnType != "bool":
-            self.errors.append(SemanticsError(ctx.start.line, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT))
+            self.errors.append(SemanticsError(ctx.start.line, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT, type_mismatched=returnType, type_required="bool"))
 
         return returnType
 
@@ -225,7 +223,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             returnValue = self.visit(ctx.expr())
 
             if returnValue != "int":
-                self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH))
+                self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched=returnValue))
 
         self.stbl.pushMethodContext(methodCxt)
 

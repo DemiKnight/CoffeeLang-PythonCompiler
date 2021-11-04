@@ -59,7 +59,7 @@ class TestExpressionSpec:
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert visitor_fixture.errors == [
-            SemanticsError(1,"main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+            SemanticsError(1,"main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched="float")
         ]
 
     @pytest.mark.skip("Need to implement boolean logic.")
@@ -179,7 +179,7 @@ class TestExpressionSpec:
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert visitor_fixture.errors == [
-            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched="float")
         ]
 
     def test_order_precedence_bool_int(self, visitor_fixture):
@@ -237,7 +237,7 @@ class TestExpressionSpec:
         # Then
         assert list(visitor_fixture.trail.values()) == expected_calls
         assert visitor_fixture.errors == [
-            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched="float")
         ]
 
     def test_logical_not(self, visitor_fixture):
@@ -265,6 +265,6 @@ class TestExpressionSpec:
         # Then
         assert len(visitor_fixture.trail.values()) == 9
         assert visitor_fixture.errors == [
-            SemanticsError(1, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT),
+            SemanticsError(1, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT,type_mismatched="int", type_required="bool"),
             SemanticsError(1, "a", ErrorType.VAR_ASSIGN_TYPE_MISMATCH, "int", "bool")
         ]

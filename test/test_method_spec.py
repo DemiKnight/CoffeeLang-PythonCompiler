@@ -206,7 +206,7 @@ class TestMethodSpec:
         # Then
         assert len(visitor_fixture.trail.values()) == 8
         assert visitor_fixture.errors == [
-            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched="float")
         ]
 
     def test_handle_main_return_type_mismatch_bool(self, visitor_fixture):
@@ -221,7 +221,7 @@ class TestMethodSpec:
         # Then
         assert len(visitor_fixture.trail.values()) == 8
         assert visitor_fixture.errors == [
-            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
+            SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched="bool")
         ]
 
     def test_parameter_usage(self, visitor_fixture):
