@@ -2,7 +2,7 @@ from CoffeeLang.CoffeeUtil import SymbolTable, Method
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 
 
-class CoffeeTreeVisitor(CoffeeVisitor):
+class CoffeeTreeVisitorGen(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
         self.data = '.data\n'

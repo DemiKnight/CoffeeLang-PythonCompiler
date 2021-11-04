@@ -6,7 +6,7 @@ from antlr4 import InputStream, CommonTokenStream, ParserRuleContext
 
 from CoffeeLang.CoffeeLexer import CoffeeLexer
 from CoffeeLang.CoffeeParser import CoffeeParser
-from TestUtilities import StubbedCoffeeTreeVisitor, TreeVisit
+from test.TestUtilities import StubbedCoffeeTreeVisitor, TreeVisit
 
 
 def createTree(source_str: str) -> ParserRuleContext:
