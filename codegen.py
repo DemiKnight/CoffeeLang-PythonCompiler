@@ -71,6 +71,13 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             method_def.pushParam(param_type)
             self.stbl.pushVar(param)
 
+            if index < len(self.stbl.param_reg):
+                method_def.body += f"movq {self.stbl.param_reg[index]}, {str(param.addr)}(%rbp)\n"
+            else:
+                print("TODO")
+
+            breakpoint()
+
         if ctx.block() is not None:
             self.visit(ctx.block())
         else:  # Must be an expression
