@@ -52,6 +52,28 @@ def test_expr_basic():
 
     assert executeTestCode(target.data + target.body) == "14"
 
+def test_expr_2_basic():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 20 - 10; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "10"
+
+
+
+def test_expr_div_basic():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 12 / 6; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "2"
+
+
+
 def test_expr_basic_assign():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""

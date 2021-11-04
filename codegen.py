@@ -117,7 +117,7 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             methodCtx.body += f"movq %rax, {var.id}(%rip)\n"
             pass
         else:  # Only other scope is Local...
-            methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
+            methodCtx.body += f"movq %rax, {var.addr}(%rbp)\n"
 
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
         if ctx.literal() is not None:
@@ -144,10 +144,10 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             if ctx.ADD() is not None:
                 method_ctx.body += "addq %r10, %r11\n"
             elif ctx.SUB() is not None:
-                method_ctx.body += "subq %r10, %r11\n"
+                method_ctx.body += "subq %r11, %r10\n"
             elif ctx.DIV() is not None:
                 method_ctx.body += "movq %r10, %rax\n"
-                method_ctx.body += "movq %r11, %rbx\n"
+                method_ctx.body += "movq $0, %rdx\n"
                 method_ctx.body += "idiv %r11\n"
             elif ctx.MUL() is not None:
                 method_ctx.body += "imul %r10, %r11\n"
