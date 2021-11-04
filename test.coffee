@@ -21,9 +21,11 @@
 //int bar() {return 2;}
 
 int foo(bool value) {
-    if(value) {
+    if(!value) {
         return 12;
     } else {
 
     }
 }
+
+bool a = !-1;

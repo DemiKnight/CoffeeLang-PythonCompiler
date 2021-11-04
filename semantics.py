@@ -124,17 +124,20 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self._method_impl(line_number, method_id, ctx)
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
+        returnType = None
+        entity_id = None
+
         if ctx.literal() is not None:
-            return self.visit(ctx.literal())
+            returnType = self.visit(ctx.literal())
         elif ctx.location() is not None:
-            return self.visit(ctx.location())
+            returnType = self.visit(ctx.location())
         elif ctx.method_call() is not None:
             methodC: Method = self.visit(ctx.method_call())
             if methodC.return_type == "void":
                 self.errors.append(SemanticsError(ctx.start.line, methodC.id, ErrorType.EXPRESSION_USING_VOID_METHOD))
-                return None
+                returnType = None
             else:
-                return methodC.return_type
+                returnType = methodC.return_type
         elif len(ctx.expr()) == 2:
             # If location, could return missing variable type.
             lhsType: str = self.visit(ctx.expr(0))
@@ -143,11 +146,16 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             lhs = TypePrecedence[lhsType.upper()] if lhsType is not None else TypePrecedence.NOTHING
             rhs = TypePrecedence[rhsType.upper()] if rhsType is not None else TypePrecedence.NOTHING
 
-            return lhsType if lhs.value < rhs.value else rhsType
+            returnType = lhsType if lhs.value < rhs.value else rhsType
         elif ctx.data_type() is not None:
-            return ctx.data_type()
+            returnType = ctx.data_type()
         else:
-            return self.visitChildren(ctx)
+            returnType = self.visitChildren(ctx)
+
+        if ctx.NOT() is not None and returnType != "bool":
+            self.errors.append(SemanticsError(ctx.start.line, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT))
+
+        return returnType
 
     def visitLiteral(self, ctx: CoffeeParser.LiteralContext):
         if ctx.INT_LIT() is not None:
@@ -184,9 +192,6 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 print("\nWARNING: Check signature on imported method...\n")
                 return method_def
 
-            # TODO Compare parameter list:
-            # - Number of paramters
-            # - Types
             params = list()
 
             for index in range(len(ctx.expr())):

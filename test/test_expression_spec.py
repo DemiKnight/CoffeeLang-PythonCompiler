@@ -239,3 +239,32 @@ class TestExpressionSpec:
         assert visitor_fixture.errors == [
             SemanticsError(1, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH)
         ]
+
+    def test_logical_not(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        bool a = !true
+        """)
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 8
+        assert visitor_fixture.errors == []
+
+    def test_handle_logical_not_type_mismatch(self, visitor_fixture):
+        # Given
+        test_prog = createTree("""
+        bool a = !-1;
+        """)
+
+        # When
+        visitor_fixture.visit(test_prog)
+
+        # Then
+        assert len(visitor_fixture.trail.values()) == 9
+        assert visitor_fixture.errors == [
+            SemanticsError(1, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT),
+            SemanticsError(1, "a", ErrorType.VAR_ASSIGN_TYPE_MISMATCH, "int", "bool")
+        ]
