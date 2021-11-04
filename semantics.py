@@ -11,6 +11,7 @@ from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable, Var
 from Utils import SemanticsError, ErrorType, print_semantic_errors
 
 
+# Type precendence for coffee
 class TypePrecedence(Enum):
     FLOAT = 0
     INT = 1
@@ -19,6 +20,7 @@ class TypePrecedence(Enum):
 
 
 class CoffeeTreeVisitor(CoffeeVisitor):
+    # List of all errors
     errors: List[SemanticsError]
     _entranceFlag: bool
 
@@ -27,19 +29,23 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         self._entranceFlag = False
         self.errors = list()
 
+    # For global & local scopes
     def declare_var(self, scope_context: int, line_number: int, var_type: str, context: CoffeeParser.Var_assignContext):
         variable_id = context.var().ID().getText()
+        # Duplicate variable ID in scope.
         if self.stbl.peek(variable_id) is not None:
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
         else:
             variable_is_array = context.var().INT_LIT() is not None
             variable_size = int(context.var().INT_LIT().getText()) * 64 if variable_is_array else 8
 
+            # Check specified array size
             if variable_is_array and int(context.var().INT_LIT().getText()) <= 0:
                 self.errors.append(SemanticsError(line_number, variable_id, ErrorType.ARRAY_SIZE_ZERO_OR_LESS))
 
             variable_def = Var(variable_id, var_type, variable_size, scope_context, variable_is_array, line_number)
 
+            # Should be a type string unless an error has occurred.
             variable_value_type = self.visit(context.expr()) if context.expr() is not None else None
 
             if variable_value_type is not None and variable_value_type != var_type:
@@ -53,6 +59,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
                 self.stbl.pushVar(variable_def)
 
     def visitProgram(self, ctx: CoffeeParser.ProgramContext):
+        # Should only be called once, but just in case, use a flag to not duplicate errors in console.
         if self._entranceFlag:
             return super().visit(tree)
         else:
@@ -61,13 +68,12 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.stbl.pushFrame(main)
             self.visitChildren(ctx)
             self.stbl.popFrame()
-
             print_semantic_errors(self.errors)
 
     def visitBlock(self, ctx: CoffeeParser.BlockContext):
         if ctx.LCURLY() is not None:
             self.stbl.pushScope()
-        # breakpoint()
+
         self.visitChildren(ctx)
 
         if ctx.RCURLY() is not None:
@@ -99,6 +105,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             param_size = 8
             param_is_array = False
 
+            # Check for duplicate parameters
             if self.stbl.peek(param_id) is not None:
                 self.errors.append(
                     SemanticsError(ctx.param(index).start.line, param_id, ErrorType.VAR_PARAM_ALREADY_DEFINED))
@@ -109,8 +116,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
         self.visit(ctx.block())
 
-        # breakpoint()
-        if method_def.has_return == False and method_def.return_type != "void":
+        # See `visitReturn` & `visitIf` for details
+        if not method_def.has_return and method_def.return_type != "void":
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_MISSING_RETURN))
 
         self.stbl.popFrame()
@@ -119,20 +126,20 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         line_number = ctx.start.line
         method_id = ctx.ID().getText()
 
+        # Check for duplicate method_id (in scope)
         if self.stbl.peek(method_id) is not None:
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_ALREADY_DEFINED))
         else:
             self._method_impl(line_number, method_id, ctx)
 
     def visitExpr(self, ctx: CoffeeParser.ExprContext):
-
         if ctx.literal() is not None:
             returnType = self.visit(ctx.literal())
         elif ctx.location() is not None:
             returnType = self.visit(ctx.location())
         elif ctx.method_call() is not None:
             methodC: Method = self.visit(ctx.method_call())
-            # breakpoint()
+            # MethodC is None when an error has occurred
             if methodC is None:
                 return None
             elif methodC.return_type == "void":
@@ -145,6 +152,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             lhsType: str = self.visit(ctx.expr(0))
             rhsType: str = self.visit(ctx.expr(1))
 
+            # Use numeric enum to determine type precedence. See TypePrecedence
             lhs = TypePrecedence[lhsType.upper()] if lhsType is not None else TypePrecedence.NOTHING
             rhs = TypePrecedence[rhsType.upper()] if rhsType is not None else TypePrecedence.NOTHING
 
@@ -154,8 +162,11 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         else:
             returnType = self.visitChildren(ctx)
 
+        # Logical `Not` type check, we don't have variable name in scope,
+        # but another `EXPRESSION_CONDITION_TYPE_MISMATCH` will be thrown later.
         if ctx.NOT() is not None and returnType != "bool":
-            self.errors.append(SemanticsError(ctx.start.line, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT, type_mismatched=returnType, type_required="bool"))
+            self.errors.append(SemanticsError(ctx.start.line, "", ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH_NOT,
+                                              type_mismatched=returnType, type_required="bool"))
 
         return returnType
 
@@ -190,6 +201,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
             method_def: Method = self.stbl.find(method_id)
 
+            # See `visitImport_stmt` for details
             if method_def.return_type == "import":
                 print("\nWARNING: Check signature on imported method...\n")
                 return method_def
@@ -199,36 +211,34 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             for index in range(len(ctx.expr())):
                 visitTest = self.visit(ctx.expr(index))
                 params.append(visitTest)
+
             if len(params) != len(method_def.param):
                 self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_ARGUMENT_COUNT))
-            elif params != method_def.param:
+            elif params != method_def.param:  # Parameter type check
                 self.errors.append(
                     SemanticsError(line_number, method_id, ErrorType.METHOD_SIGNATURE_TYPE_MISMATCH_PARAMETERS))
 
             return method_def
-        else:
+        else:  # Duplicate import
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_NOT_FOUND))
 
     def visitReturn(self, ctx: CoffeeParser.ReturnContext):
         methodCxt: Method = self.stbl.getMethodContext()
 
-        # Are we inside a nod
-        if methodCxt is not None:
-            methodCxt.has_return = True
+        # methodCxt should always return a method, either user-defined or `main`
+        methodCxt.has_return = True
+        returnValue = self.visit(ctx.expr())
 
-        if methodCxt is not None and methodCxt.id != "main":
-            returnValue = self.visit(ctx.expr())
+        # Return type checks
+        if methodCxt.id != "main":
             if methodCxt.return_type == "void" and returnValue is not None:
                 self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_VOID_RETURNING_VALUE))
             elif methodCxt.return_type != returnValue:
                 self.errors.append(SemanticsError(ctx.start.line, methodCxt.id, ErrorType.METHOD_RETURN_TYPE_MISMATCH))
-        elif methodCxt.id == "main":
-            returnValue = self.visit(ctx.expr())
 
-            if returnValue != "int":
-                self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH, type_mismatched=returnValue))
-
-        self.stbl.pushMethodContext(methodCxt)
+        elif methodCxt.id == "main" and returnValue != "int":
+            self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH,
+                                              type_mismatched=returnValue))
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
 
@@ -237,12 +247,13 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
             existing_method = self.stbl.find(import_method_id)
 
-            if existing_method is not None:
+            if existing_method is not None: # Duplicate import
                 self.errors.append(SemanticsError(ctx.start.line, import_method_id, ErrorType.IMPORT_DUPLICATE))
             else:
-                method = Method(import_method_id,"import",ctx.start.line)
+                # We don't know the imported function type, so utilise it for a warning
+                method = Method(import_method_id, "import", ctx.start.line)
                 self.stbl.pushMethod(method)
-        return super().visitImport_stmt(ctx)
+
 
     def visitIf(self, ctx: CoffeeParser.IfContext):
         method_context: Method = self.stbl.getMethodContext()
@@ -252,27 +263,29 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(
                 SemanticsError(ctx.start.line, method_context.id, ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH))
 
+        # Attempt deduce whether the if statement returns something
         if method_context.return_type != "void":
             passed_main_if = False
-            passed_else_id = False
+            passed_else_if = False
             method_context.has_return = False
 
+            # If we always have one code block
             self.visit(ctx.block(0))
 
+            # Check whether `visitReturn` has modified `method_context.has_return`
             passed_main_if = method_context.has_return
 
             if ctx.ELSE() is not None:
+                # Reset `method_context.has_return` for the else block
                 method_context.has_return = False
-
                 self.visit(ctx.block(1))
 
-                passed_else_id = method_context.has_return
-
+                # Check for `visitReturn` again
+                passed_else_if = method_context.has_return
             else:
-                passed_else_id = True
+                passed_else_if = True
 
-            method_context.has_return = passed_else_id & passed_main_if
-
+            method_context.has_return = passed_else_if & passed_main_if
 
 
 if __name__ == "__main__":
