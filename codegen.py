@@ -6,6 +6,9 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 # Tasks
 # Task 1 - Expressions
 # Task 2 - Methods
+# Changes
+# main -> _main
+# global -> globl
 class CoffeeTreeVisitorGen(CoffeeVisitor):
     body: str
     data: str
@@ -26,12 +29,12 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         method.body += method.id + ':\n'
         method.body += 'push %rbp\n'
         method.body += 'movq %rsp, %rbp\n'
-        method.body += 'movl $3, %eax\n'
+        method.body += 'movl $3, %eax\n'  # Todo remove when sorting return
         method.body += 'popq %rbp\n'
 
         self.visitChildren(ctx)
 
-        if method.has_return == False:
+        if not method.has_return:
             method.body += 'pop %rbp\n'
             method.body += 'ret\n'
 
@@ -55,12 +58,8 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
 
         method_def.body += (f"{method_id}:\n"
                             "push %rbp\n"
-                            "movq %rsp, %rbp\n"
-                            "pop %rbp\n"
-                            "ret\n")
+                            "movq %rsp, %rbp\n")
 
-        self.body += method_def.body
-        breakpoint()
 
         for index in range(len(ctx.param())):
             param_id = ctx.param(index).ID().getText()
@@ -72,6 +71,23 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             method_def.pushParam(param_type)
             self.stbl.pushVar(param)
 
-        self.visit(ctx.block())
+        if ctx.block() is not None:
+            self.visit(ctx.block())
+        else:  # Must be an expression
+            self.visit(ctx.expr())
+
+        if not method_def.has_return:
+            method_def.body += 'pop %rbp\n'
+            method_def.body += 'ret\n'
+
+        self.body += method_def.body
+        self.data += method_def.data
 
         self.stbl.popFrame()
+
+    def visitBlock(self, ctx:CoffeeParser.BlockContext):
+        if ctx.LCURLY() is not None:
+            method_ctx = self.stbl.getMethodContext()
+            method_ctx.body += "# lol\n"
+
+        self.visitChildren(ctx)

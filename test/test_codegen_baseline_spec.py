@@ -11,6 +11,7 @@ compilerCmd = f"gcc-11 {outputFile}.s -lm; {outputFile}.out; echo $?"
 
 
 def executeTestCode(assembly: str) -> str:
+    print(assembly.format())
     breakpoint()
     fileout = open(f"{outputFile}.s", "w")
     fileout.write(assembly)
