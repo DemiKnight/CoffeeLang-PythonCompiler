@@ -26,7 +26,6 @@ def test_default_output():
     int inc(int a) {
       return a + 1;
     }
-    
     return inc(2);
     """)
 
@@ -41,7 +40,7 @@ def test_default_output():
         "ret\n")
 
     # assert target.data + target.body == expected_value
-    assert executeTestCode(target.data + target.body) == "0"
+    assert executeTestCode(target.data + target.body) == "3"
 
 
 @pytest.mark.skip

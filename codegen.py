@@ -29,8 +29,8 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         method.body += method.id + ':\n'
         method.body += 'push %rbp\n'
         method.body += 'movq %rsp, %rbp\n'
-        method.body += 'movl $3, %eax\n'  # Todo remove when sorting return
-        method.body += 'popq %rbp\n'
+        # method.body += 'movl $3, %eax\n'  # Todo remove when sorting return
+        # method.body += 'popq %rbp\n'
 
         self.visitChildren(ctx)
 
@@ -44,7 +44,16 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         self.stbl.popFrame()
 
     def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
-        return super().visitMethod_call(ctx)
+        method_ctx: Method = self.stbl.getMethodContext()
+
+        for index in range(len(ctx.expr())):
+            self.visit(ctx.expr(index))
+            method_ctx.body += f"movq %rax, {self.stbl.param_reg[index]}\n"
+
+        method_ctx.body += f"addq ${self.stbl.getStackPtr()}, %rsp\n"
+        method_ctx.body += f"call {ctx.ID().getText()}\n"
+        method_ctx.body += f"subq ${self.stbl.getStackPtr()}, %rsp\n"
+
 
     def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
         line_number = ctx.start.line
@@ -95,7 +104,7 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         if ctx.INT_LIT() is not None:
             methodCTx: Method = self.stbl.getMethodContext()
             methodCTx.body += f"movq ${ctx.INT_LIT()}, %rax\n"
-            breakpoint()
+            # breakpoint()
 
             return ctx.INT_LIT()
 
@@ -111,6 +120,9 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
 
         return super().visitLocation(ctx)
+
+
+
 
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
         if ctx.literal() is not None:
@@ -131,8 +143,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
                 method_ctx.body += "addq %r10, %r11\n"
 
             method_ctx.body += "movq %r11, %rax\n"
-
-            pass
         else:
             return self.visitChildren(ctx)
 
