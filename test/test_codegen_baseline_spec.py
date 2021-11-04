@@ -12,7 +12,7 @@ compilerCmd = f"gcc-11 {outputFile}.s -lm; {outputFile}.out; echo $?"
 
 def executeTestCode(assembly: str) -> str:
     breakpoint()
-    fileout = open(f"{outputFile}.out", "w")
+    fileout = open(f"{outputFile}.s", "w")
     fileout.write(assembly)
     fileout.close()
     returnValue = os.popen(compilerCmd).read().strip()

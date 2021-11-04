@@ -1,14 +1,18 @@
-
 from CoffeeLang.CoffeeParser import CoffeeParser
 from CoffeeLang.CoffeeUtil import SymbolTable, Method, Var
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 
 
+# Tasks
+# Task 1 - Expressions
+# Task 2 - Methods
 class CoffeeTreeVisitorGen(CoffeeVisitor):
+    body: str
+    data: str
+
     def __init__(self):
         self.stbl = SymbolTable()
-        # self.data = '.data\n'
-        self.data = ''
+        self.data = '.data\n'
         self.body = '.text\n.globl _main\n'
 
     def visitProgram(self, ctx):
@@ -17,7 +21,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         method = Method('_main', 'int', line)
 
         self.stbl.pushFrame(method)
-
         self.stbl.pushMethod(method)
 
         method.body += method.id + ':\n'
@@ -25,7 +28,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         method.body += 'movq %rsp, %rbp\n'
         method.body += 'movl $3, %eax\n'
         method.body += 'popq %rbp\n'
-
 
         self.visitChildren(ctx)
 
@@ -51,13 +53,22 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         self.stbl.pushMethod(method_def)
         self.stbl.pushFrame(method_def)
 
+        method_def.body += (f"{method_id}:\n"
+                            "push %rbp\n"
+                            "movq %rsp, %rbp\n"
+                            "pop %rbp\n"
+                            "ret\n")
+
+        self.body += method_def.body
+        breakpoint()
+
         for index in range(len(ctx.param())):
             param_id = ctx.param(index).ID().getText()
             param_type = ctx.param(index).data_type().getText()
             param_size = 8
             param_is_array = False
 
-            param = Var(param_id ,param_type ,param_size ,Var.LOCAL ,param_is_array ,line_number)
+            param = Var(param_id, param_type, param_size, Var.LOCAL, param_is_array, line_number)
             method_def.pushParam(param_type)
             self.stbl.pushVar(param)
 
