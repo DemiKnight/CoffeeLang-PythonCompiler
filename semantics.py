@@ -132,7 +132,10 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             returnType = self.visit(ctx.location())
         elif ctx.method_call() is not None:
             methodC: Method = self.visit(ctx.method_call())
-            if methodC.return_type == "void":
+            # breakpoint()
+            if methodC is None:
+                return None
+            elif methodC.return_type == "void":
                 self.errors.append(SemanticsError(ctx.start.line, methodC.id, ErrorType.EXPRESSION_USING_VOID_METHOD))
                 returnType = None
             else:

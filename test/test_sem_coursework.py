@@ -20,8 +20,12 @@ class TestControlSemanticSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert len(visitor_fixture.trail.values()) == 30
-        assert visitor_fixture.errors == []
+        assert len(visitor_fixture.trail.values()) == 17
+        assert visitor_fixture.errors == [
+            SemanticsError(1,"printf",ErrorType.IMPORT_DUPLICATE),
+            SemanticsError(3,"foo", ErrorType.METHOD_VOID_RETURNING_VALUE),
+            SemanticsError(5,"food",ErrorType.METHOD_NOT_FOUND),
+        ]
 
     def test_expression(self, visitor_fixture):
         # Given
