@@ -30,8 +30,8 @@ class ErrorType(Enum):
 
     # Arithmetic/Logic/Expression errors
     EXPRESSION_USING_VOID_METHOD = "Method {identifier} returns void but was used within an expression"
-    EXPRESSION_CONDITION_TYPE_MISMATCH = ""
-    EXPRESSION_CONDITION_TYPE_MISMATCH_NOT = ""
+    EXPRESSION_CONDITION_TYPE_MISMATCH = "If condition should be bool not {type_mismatched}"
+    EXPRESSION_CONDITION_TYPE_MISMATCH_NOT = "{type_mismatched} used with a logical NOT"
 
     # MISC.
     MAIN_METHOD_RETURN_TYPE_MISMATCH = "Main method must return int but instead got {type_mismatched}"

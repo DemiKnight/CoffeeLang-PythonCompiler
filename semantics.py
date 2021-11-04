@@ -261,7 +261,8 @@ class CoffeeTreeVisitor(CoffeeVisitor):
         condition_type = self.visit(ctx.expr())
         if condition_type != "bool":
             self.errors.append(
-                SemanticsError(ctx.start.line, method_context.id, ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH))
+                SemanticsError(ctx.start.line, method_context.id, ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH,
+                               type_required="bool", type_mismatched=condition_type))
 
         # Attempt deduce whether the if statement returns something
         if method_context.return_type != "void":
