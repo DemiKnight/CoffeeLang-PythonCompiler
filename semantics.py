@@ -109,6 +109,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
         self.visit(ctx.block())
 
+        # breakpoint()
         if method_def.has_return == False and method_def.return_type != "void":
             self.errors.append(SemanticsError(line_number, method_id, ErrorType.METHOD_MISSING_RETURN))
 
@@ -226,11 +227,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             if returnValue != "int":
                 self.errors.append(SemanticsError(ctx.start.line, "main", ErrorType.MAIN_METHOD_RETURN_TYPE_MISMATCH))
 
-            # breakpoint()
-
         self.stbl.pushMethodContext(methodCxt)
-        # Check for method context & if present, check the type. Or void
-        # return super().visitReturn(ctx)
 
     def visitImport_stmt(self, ctx: CoffeeParser.Import_stmtContext):
 
@@ -244,12 +241,9 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             else:
                 method = Method(import_method_id,"import",ctx.start.line)
                 self.stbl.pushMethod(method)
-
-        # Duplication & print warning...
         return super().visitImport_stmt(ctx)
 
     def visitIf(self, ctx: CoffeeParser.IfContext):
-        # ctx.block() <- visit
         method_context: Method = self.stbl.getMethodContext()
 
         condition_type = self.visit(ctx.expr())
@@ -257,7 +251,27 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(
                 SemanticsError(ctx.start.line, method_context.id, ErrorType.EXPRESSION_CONDITION_TYPE_MISMATCH))
 
-        return super().visitIf(ctx)
+        if method_context.return_type != "void":
+            passed_main_if = False
+            passed_else_id = False
+            method_context.has_return = False
+
+            self.visit(ctx.block(0))
+
+            passed_main_if = method_context.has_return
+
+            if ctx.ELSE() is not None:
+                method_context.has_return = False
+
+                self.visit(ctx.block(1))
+
+                passed_else_id = method_context.has_return
+
+            else:
+                passed_else_id = True
+
+            method_context.has_return = passed_else_id & passed_main_if
+
 
 
 if __name__ == "__main__":

@@ -255,9 +255,9 @@ class TestMethodSpec:
         visitor_fixture.visit(test_prog)
 
         # Then
-        assert len(visitor_fixture.trail.values()) == 22
+        assert len(visitor_fixture.trail.values()) == 21
         assert visitor_fixture.errors == [
-            SemanticsError(1, "foo", ErrorType.METHOD_MISSING_RETURN_NON_EXHAUSTIVE)
+            SemanticsError(1, "foo", ErrorType.METHOD_MISSING_RETURN)
         ]
 
     def test_import_duplicate(self, visitor_fixture):
