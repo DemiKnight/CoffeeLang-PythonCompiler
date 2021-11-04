@@ -1,17 +1,20 @@
-from CoffeeLang.CoffeeUtil import SymbolTable, Method
+
+from CoffeeLang.CoffeeParser import CoffeeParser
+from CoffeeLang.CoffeeUtil import SymbolTable, Method, Var
 from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 
 
 class CoffeeTreeVisitorGen(CoffeeVisitor):
     def __init__(self):
         self.stbl = SymbolTable()
-        self.data = '.data\n'
-        self.body = '.text\n.global main\n'
+        # self.data = '.data\n'
+        self.data = ''
+        self.body = '.text\n.globl _main\n'
 
     def visitProgram(self, ctx):
         line = ctx.start.line
 
-        method = Method('main', 'int', line)
+        method = Method('_main', 'int', line)
 
         self.stbl.pushFrame(method)
 
@@ -20,6 +23,9 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         method.body += method.id + ':\n'
         method.body += 'push %rbp\n'
         method.body += 'movq %rsp, %rbp\n'
+        method.body += 'movl $3, %eax\n'
+        method.body += 'popq %rbp\n'
+
 
         self.visitChildren(ctx)
 
@@ -29,5 +35,32 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
 
         self.data += method.data
         self.body += method.body
+
+        self.stbl.popFrame()
+
+    def visitMethod_call(self, ctx: CoffeeParser.Method_callContext):
+        return super().visitMethod_call(ctx)
+
+    def visitMethod_decl(self, ctx: CoffeeParser.Method_declContext):
+        line_number = ctx.start.line
+        method_id = ctx.ID().getText()
+        method_type = ctx.return_type().getText()
+
+        method_def = Method(method_id, method_type, line_number)
+
+        self.stbl.pushMethod(method_def)
+        self.stbl.pushFrame(method_def)
+
+        for index in range(len(ctx.param())):
+            param_id = ctx.param(index).ID().getText()
+            param_type = ctx.param(index).data_type().getText()
+            param_size = 8
+            param_is_array = False
+
+            param = Var(param_id ,param_type ,param_size ,Var.LOCAL ,param_is_array ,line_number)
+            method_def.pushParam(param_type)
+            self.stbl.pushVar(param)
+
+        self.visit(ctx.block())
 
         self.stbl.popFrame()
