@@ -114,7 +114,7 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         var: Var = self.stbl.find(location_id)
 
         if var.scope == Var.GLOBAL:
-            methodCtx.body += f"movq {var.id}(%rip), %rax\n"
+            methodCtx.body += f"movq %rax, {var.id}(%rip)\n"
             pass
         else:  # Only other scope is Local...
             methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
@@ -128,12 +128,17 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             method_ctx: Method = self.stbl.getMethodContext()
 
             result = self.visit(ctx.expr(0))
-            method_ctx.body += "movq %rax, %r10\n"
+            self.stbl.pushBytes(8)
+            method_ctx.body += f"movq %rax, {self.stbl.getStackPtr()}(%rsp)\n"
+            # method_ctx.body += "movq %rax, %r10\n"
 
             result2 = self.visit(ctx.expr(1))
             method_ctx.body += f"movq %rax, %r11\n"
 
-            breakpoint()
+            method_ctx.body += f"movq {self.stbl.getStackPtr()}(%rsp), %r10\n"
+            self.stbl.popBytes(8)
+
+            # breakpoint()
 
             # Store operation result in R11
             if ctx.ADD() is not None:
@@ -141,8 +146,8 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             elif ctx.SUB() is not None:
                 method_ctx.body += "subq %r10, %r11\n"
             elif ctx.DIV() is not None:
-                method_ctx.body += "movq %r10, $rax\n"
-                method_ctx.body += "movq %r11, $rbx\n"
+                method_ctx.body += "movq %r10, %rax\n"
+                method_ctx.body += "movq %r11, %rbx\n"
                 method_ctx.body += "idiv %r11\n"
             elif ctx.MUL() is not None:
                 method_ctx.body += "imul %r10, %r11\n"

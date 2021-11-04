@@ -43,7 +43,28 @@ def test_default_output():
     assert executeTestCode(target.data + target.body) == "3"
 
 
-# @pytest.mark.skip
+def test_expr_basic():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 2 + 3 * 4; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "14"
+
+def test_expr_basic_assign():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int a;
+    a = 2 + 3 * 4;
+    return a; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "14"
+
+
+@pytest.mark.skip
 def test_task1():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
