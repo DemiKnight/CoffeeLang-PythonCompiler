@@ -117,12 +117,28 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
             return self.visit(ctx.location())
+        elif len(ctx.expr()) == 2:
+            method_ctx: Method = self.stbl.getMethodContext()
+
+            result = self.visit(ctx.expr(0))
+            method_ctx.body += "movq %rax, %r10\n"
+
+            result2 = self.visit(ctx.expr(1))
+            method_ctx.body += f"movq %rax, %r11\n"
+
+            # Store operation result in R11
+            if ctx.ADD() is not None:
+                method_ctx.body += "addq %r10, %r11\n"
+
+            method_ctx.body += "movq %r11, %rax\n"
+
+            pass
         else:
             return self.visitChildren(ctx)
 
     def visitBlock(self, ctx:CoffeeParser.BlockContext):
         if ctx.LCURLY() is not None:
             method_ctx = self.stbl.getMethodContext()
-            method_ctx.body += "# lol\n"
+            # method_ctx.body += "# lol\n"
 
         self.visitChildren(ctx)
