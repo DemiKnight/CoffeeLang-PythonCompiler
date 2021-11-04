@@ -43,7 +43,7 @@ def test_default_output():
     assert executeTestCode(target.data + target.body) == "3"
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_task1():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
@@ -54,7 +54,9 @@ def test_task1():
     """)
 
     target.visit(test_prog)
-    runOutput = "Return Code 241"
+
+    assert executeTestCode(target.data + target.body) == "241"
+    runOutput = "Return Code 241"  # Is -15 but 256-15 == 241
 
 
 @pytest.mark.skip

@@ -104,7 +104,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         if ctx.INT_LIT() is not None:
             methodCTx: Method = self.stbl.getMethodContext()
             methodCTx.body += f"movq ${ctx.INT_LIT()}, %rax\n"
-            # breakpoint()
 
             return ctx.INT_LIT()
 
@@ -114,15 +113,11 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
 
         var: Var = self.stbl.find(location_id)
 
-        if(var.scope == Var.GLOBAL):
+        if var.scope == Var.GLOBAL:
+            methodCtx.body += f"movq {var.id}(%rip), %rax\n"
             pass
         else:  # Only other scope is Local...
             methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
-
-        return super().visitLocation(ctx)
-
-
-
 
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
         if ctx.literal() is not None:
@@ -138,9 +133,23 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             result2 = self.visit(ctx.expr(1))
             method_ctx.body += f"movq %rax, %r11\n"
 
+            breakpoint()
+
             # Store operation result in R11
             if ctx.ADD() is not None:
                 method_ctx.body += "addq %r10, %r11\n"
+            elif ctx.SUB() is not None:
+                method_ctx.body += "subq %r10, %r11\n"
+            elif ctx.DIV() is not None:
+                method_ctx.body += "movq %r10, $rax\n"
+                method_ctx.body += "movq %r11, $rbx\n"
+                method_ctx.body += "idiv %r11\n"
+            elif ctx.MUL() is not None:
+                method_ctx.body += "imul %r10, %r11\n"
+                pass
+            elif ctx.MOD() is not None:
+                pass
+
 
             method_ctx.body += "movq %r11, %rax\n"
         else:
@@ -152,3 +161,22 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             # method_ctx.body += "# lol\n"
 
         self.visitChildren(ctx)
+
+    def visitGlobal_decl(self, ctx: CoffeeParser.Global_declContext):
+        method_ctx: Method = self.stbl.getMethodContext()
+        line_number = ctx.start.line
+
+        for index in range(len(ctx.var_decl().var_assign())):
+            variable_decl: CoffeeParser.VarContext = ctx.var_decl().var_assign(index).var()
+            variable_id = variable_decl.ID().getText()
+
+            variable_type = self.visit(ctx.var_decl().var_assign(index).expr()) \
+                if ctx.var_decl().var_assign(index).expr() is not None else None
+
+            variable_is_array = variable_decl.INT_LIT() is not None
+            variable_size = int(variable_decl.INT_LIT().getText()) * 8 if variable_is_array else 8
+
+            variable_def = Var(variable_id,variable_type,variable_size,Var.GLOBAL,variable_is_array,line_number)
+            self.stbl.pushVar(variable_def)
+            method_ctx.data += f".comm {variable_id},{variable_size}\n"
+
