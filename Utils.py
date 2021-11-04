@@ -61,5 +61,4 @@ def print_semantic_errors(errors: List[SemanticsError]) -> None:
         formatted_str: str = error.ErrorT.value.format(
             identifier=error.identifier, type_mismatched=type_mismatch_str, type_required=type_required_str)
 
-
         print(f"\nERROR: {formatted_str}! See line {error.lineNumber}")
