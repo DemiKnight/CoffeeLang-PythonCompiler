@@ -135,25 +135,25 @@ def test_task1_reduced():
     int a, b;
     a = 2 + 3 * 4; 
     b = 5 - a % 10;
-    return a + b;
+    return (a + b);
     """)
 
     target.visit(test_prog)
 
     assert executeTestCode(target.data + target.body) == "15"
 
+@pytest.mark.skip
 def test_invert_number():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
     int a;
     a = 10;
-    return -(a);
+    return -(a + a);
     """)
 
     target.visit(test_prog)
 
-    assert executeTestCode(target.data + target.body) == "246"
-
+    assert executeTestCode(target.data + target.body) == "236"
 @pytest.mark.skip
 def test_task1():
     target = CoffeeTreeVisitorGen()
@@ -169,6 +169,18 @@ def test_task1():
     assert executeTestCode(target.data + target.body) == "241"
     runOutput = "Return Code 241"  # Is -15 but 256-15 == 241
 
+@pytest.mark.skip
+def test_task2_methods_empty():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int sum(int a, int b, int c, int d, int e, int f, int g) {
+        return 0;
+    }
+    return sum(1, 2, 3, 4, 5, 6, 7);    
+    """)
+
+    target.visit(test_prog)
+    assert executeTestCode(target.data + target.body) == "0"
 
 @pytest.mark.skip
 def test_task2_methods():
@@ -181,4 +193,15 @@ def test_task2_methods():
     """)
 
     target.visit(test_prog)
-    runOutput = "Return Code 28"
+    assert executeTestCode(target.data + target.body) == "28"
+
+def test_for_loop():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int a = 0;
+    for (i in [0:10:2]) { 
+        a = a + i;
+    }
+    return a;""")
+    target.visit(test_prog)
+    assert executeTestCode(target.data + target.body) == "28"

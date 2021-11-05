@@ -7,8 +7,6 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 # Task 1 - Expressions
 # Task 2 - Methods
 # Changes
-# main -> _main
-# global -> globl
 class CoffeeTreeVisitorGen(CoffeeVisitor):
     body: str
     data: str
@@ -48,7 +46,12 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
 
         for index in range(len(ctx.expr())):
             self.visit(ctx.expr(index))
-            method_ctx.body += f"movq %rax, {self.stbl.param_reg[index]}\n"
+
+            if index < 6:
+                method_ctx.body += f"movq %rax, {self.stbl.param_reg[index]}\n"
+            else:
+                # method_ctx.body += f"movq %rax, {self.stbl.param_reg[index]}\n"
+                print("todo")
 
         method_ctx.body += f"addq ${self.stbl.getStackPtr()}, %rsp\n"
         method_ctx.body += f"call {ctx.ID().getText()}\n"
@@ -82,7 +85,10 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             if index < len(self.stbl.param_reg):
                 method_def.body += f"movq {self.stbl.param_reg[index]}, {str(param.addr)}(%rbp)\n"
             else:
-                print("TODO")
+                addrValue = 16*(index-5)
+                method_def.body += f"movq {str(addrValue)}(%rbp), %rax\n"
+                method_def.body += f"movq %rax, {str(param.addr)}(%rbp)\n"
+                # method_def.body += f"movq {self.stbl.param_reg[index]}, {str(param.addr)}(%rbp)\n"
 
             # breakpoint()
 
@@ -99,6 +105,9 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         self.data += method_def.data
 
         self.stbl.popFrame()
+
+    def visitReturn(self, ctx:CoffeeParser.ReturnContext):
+        self.visit(ctx.expr())
 
     def visitLiteral(self, ctx:CoffeeParser.LiteralContext):
         if ctx.INT_LIT() is not None:
@@ -133,8 +142,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
 
 
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
-        print(f"testing123 {ctx.SUB()}")
-        breakpoint()
         if ctx.literal() is not None:
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
@@ -145,7 +152,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             result = self.visit(ctx.expr(0))
             self.stbl.pushBytes(8)
             method_ctx.body += f"movq %rax, {self.stbl.getStackPtr()}(%rsp)\n"
-            # method_ctx.body += "movq %rax, %r10\n"
 
             result2 = self.visit(ctx.expr(1))
             method_ctx.body += f"movq %rax, %r11\n"
@@ -165,8 +171,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
                 method_ctx.body += "movq %r10, %rax\n"
                 method_ctx.body += "movq $0, %rdx\n"
                 method_ctx.body += "idiv %r11\n"
-                # method_ctx.body += "movq %rdx, %rax\n"
-                # method_ctx.body += "movq %rax, %r10\n"
             elif ctx.MUL() is not None:
                 method_ctx.body += "imul %r10, %r11\n"
                 method_ctx.body += "movq %r11, %rax\n"
@@ -180,7 +184,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         elif ctx.SUB() is not None:
             method_ctx: Method = self.stbl.getMethodContext()
             method_ctx.body += "neg %rax\n"
-            # breakpoint()
         else:
             return self.visitChildren(ctx)
 
@@ -209,3 +212,48 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             self.stbl.pushVar(variable_def)
             method_ctx.data += f".comm {variable_id},{variable_size}\n"
 
+    def visitFor(self, ctx:CoffeeParser.ForContext):
+        method_ctx: Method = self.stbl.getMethodContext()
+        start_label = self.stbl.getNextLabel()
+        end_label = self.stbl.getNextLabel()
+
+        self.stbl.pushScope()
+
+        loop_var_id = ctx.loop_var().getText()
+
+        loop_var = Var(loop_var_id,"int",8,Var.LOCAL,False,ctx.start.line)
+        self.stbl.pushVar(loop_var)
+
+        low_var = Var("lowVar", "int", 8, Var.LOCAL, False, ctx.start.line)
+        self.stbl.pushVar(low_var)
+        self.visit(ctx.limit().low().expr())
+        method_ctx.body += f"movq %rax, {str(low_var.addr)}(%rsp)\n"
+
+        high_var = Var("highVar", "int", 8, Var.LOCAL, False, ctx.start.line)
+        self.stbl.pushVar(high_var)
+        self.visit(ctx.limit().high().expr())
+        method_ctx.body += f"movq %rax, {str(high_var.addr)}(%rsp)\n"
+
+        step_var = Var("stepVar", "int", 8, Var.LOCAL, False, ctx.start.line)
+        self.stbl.pushVar(step_var)
+        self.visit(ctx.limit().step().expr())
+        method_ctx.body += f"movq %rax, {str(step_var.addr)}(%rsp)\n"
+
+        method_ctx.body += f"movq {str(low_var.addr)}(%rsp), %rax\n"
+        method_ctx.body += f"movq %rax, {str(loop_var.addr)}(%rsp)\n"
+
+        method_ctx.body += f"{start_label}:\n"
+
+        self.visit(ctx.block())
+
+        method_ctx.body += f"movq {str(loop_var.addr)}(%rbp), %rax\n"
+        method_ctx.body += f"movq {str(step_var.addr)}(%rbp), %r11\n"
+        method_ctx.body += f"addq %rax, %r11\n"
+        method_ctx.body += f"movq %rax, {str(loop_var.addr)}(%rbp)\n"
+
+        method_ctx.body += f"movq {str(high_var.addr)}(%rbp), %r10\n"
+        method_ctx.body += f"cmp %r10, %rax\n"
+        method_ctx.body += f"je {end_label}\n"
+        # method_ctx.body += f"jmp {start_label}\n"
+
+        method_ctx.body += f"{end_label}:\n"
