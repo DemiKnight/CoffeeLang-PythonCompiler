@@ -138,25 +138,33 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             method_ctx.body += f"movq {self.stbl.getStackPtr()}(%rsp), %r10\n"
             self.stbl.popBytes(8)
 
-            # breakpoint()
-
             # Store operation result in R11
             if ctx.ADD() is not None:
                 method_ctx.body += "addq %r10, %r11\n"
+                method_ctx.body += "movq %r11, %rax\n"
             elif ctx.SUB() is not None:
                 method_ctx.body += "subq %r11, %r10\n"
+                method_ctx.body += "movq %r10, %rax\n"
+
             elif ctx.DIV() is not None:
                 method_ctx.body += "movq %r10, %rax\n"
                 method_ctx.body += "movq $0, %rdx\n"
                 method_ctx.body += "idiv %r11\n"
+                # method_ctx.body += "movq %rdx, %rax\n"
+                # method_ctx.body += "movq %rax, %r10\n"
             elif ctx.MUL() is not None:
                 method_ctx.body += "imul %r10, %r11\n"
+                method_ctx.body += "movq %r11, %rax\n"
                 pass
             elif ctx.MOD() is not None:
+                method_ctx.body += "movq %r10, %rax\n"
+                method_ctx.body += "movq $0, %rdx\n"
+                method_ctx.body += "idiv %r11\n"
+                method_ctx.body += "movq %rdx, %rax\n"
                 pass
 
 
-            method_ctx.body += "movq %r11, %rax\n"
+
         else:
             return self.visitChildren(ctx)
 

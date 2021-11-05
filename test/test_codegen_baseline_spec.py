@@ -7,16 +7,19 @@ from test.VisitorSpec import createTree
 
 outputFile = "/Users/alexknight/projects/personal/pyAntlr/test/a"
 compilerCmd = f"gcc-11 {outputFile}.s -lm; {outputFile}.out; echo $?"
+
+
 # compilerCmd = f"gcc-11 {outputFile} -lm; echo $?"
 
 
 def executeTestCode(assembly: str) -> str:
     print(assembly.format())
-    # breakpoint()
     fileout = open(f"{outputFile}.s", "w")
     fileout.write(assembly)
     fileout.close()
     returnValue = os.popen(compilerCmd).read().strip()
+    print(f"return Code: {returnValue}")
+    # breakpoint()
     return returnValue
 
 
@@ -43,6 +46,26 @@ def test_default_output():
     assert executeTestCode(target.data + target.body) == "3"
 
 
+def test_expr_add():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 2 + 3; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "5"
+
+
+def test_expr_mul():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 2 * 6; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "12"
+
+
 def test_expr_basic():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
@@ -52,26 +75,35 @@ def test_expr_basic():
 
     assert executeTestCode(target.data + target.body) == "14"
 
+
 def test_expr_2_basic():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
-    return 20 - 10; 
+    return 20 - 11; 
     """)
     target.visit(test_prog)
 
-    assert executeTestCode(target.data + target.body) == "10"
+    assert executeTestCode(target.data + target.body) == "9"
 
 
-
-def test_expr_div_basic():
+def test_expr_mod():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
-    return 12 / 6; 
+    return 20 % 6; 
     """)
     target.visit(test_prog)
 
     assert executeTestCode(target.data + target.body) == "2"
 
+
+def test_expr_div_basic():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    return 12 / 4; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "3"
 
 
 def test_expr_basic_assign():
