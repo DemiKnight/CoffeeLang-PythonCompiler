@@ -9,9 +9,7 @@ Coffee Lang
 To test, inside `CoffeeLang` directory, run `grun Coffee program ../test.coffee -gui`
 
 # Tests
-`test/`
-- `test_variable_spec` - Variable usage
-- ``
+- Run `pytest` 
 
 ## Semantic Rules 
 1. Variables must be declared before use 
@@ -41,11 +39,6 @@ To test, inside `CoffeeLang` directory, run `grun Coffee program ../test.coffee 
 25. The singular expression in a block (expr) provides a valid return value for a method without requiring the return keyword 
 26. Methods returning void cannot be used in an expression 
 27. Break and continue statements must be contained within the body of a loop.
-  - `test_variable_semantic_spec` - rules 1 & 2 
-  - `test_method_semantic_spec` - rules 3, 4, 5, 6, 7 & 8
-  - `test_control_semantic_spec` - rules 9, 10, 11, 12, 15 27,
-  - `test_expressions_semantic_spec` - 13, 17, 18, 21, 22, 23, 24, 25, 26
-  - `test_arrays_semantic_spec` - 14, 16, 19, 20,
 
 #Coursework - Semantic 
 Semantic Coursework Tasks 1 & 2
@@ -85,13 +78,15 @@ return -(a + b);
 ```
 Write a solution which generates the correct assembly code and program output for the above Coffee code.
 
-# Task 2 Methods
-i) Extra Args: Create a test source file with the following contents:
+# Task 3 Loops
+i) Limit / Step: Create a test source file with the following contents:
 ```c
-int sum(int a, int b, int c, int d, int e, int f, int g) {
-return a + b + c + d + e + f + g;
+int a = 0;
+for (i in [1:10:2]) {
+  a = a + i;
 }
-return sum(1, 2, 3, 4, 5, 6, 7);
+return a;
 ```
-Write a solution which generates the correct assembly code and program output for the above Coffee code.
-Tip: Due to limited registers, the caller (method_call) will place the 7th argument on the stack, and the callee (method_decl) will read the 7th argument from the stack.
+Write a solution which generates the correct assembly code and program output for the above Coffee
+code.
+Tip: in addition to visitFor for the loop, you will have to write visitAssign for the assignment of a + i;
