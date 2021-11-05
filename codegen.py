@@ -114,10 +114,24 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
         var: Var = self.stbl.find(location_id)
 
         if var.scope == Var.GLOBAL:
-            methodCtx.body += f"movq %rax, {var.id}(%rip)\n"
+            methodCtx.body += f"movq {var.id}(%rip), %rax\n"
             pass
         else:  # Only other scope is Local...
+            methodCtx.body += f"movq {var.addr}(%rbp), %rax\n"
+
+    def visitAssign(self, ctx:CoffeeParser.AssignContext):
+        self.visit(ctx.expr())
+        methodCtx: Method = self.stbl.getMethodContext()
+        location_id = ctx.location().ID().getText()
+
+        var: Var = self.stbl.find(location_id)
+
+        if var.scope == Var.GLOBAL:
+            methodCtx.body += f"movq %rax, {var.id}(%rip)\n"
+        else:  # Only other scope is Local...
             methodCtx.body += f"movq %rax, {var.addr}(%rbp)\n"
+
+
 
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
         if ctx.literal() is not None:
@@ -162,8 +176,6 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
                 method_ctx.body += "idiv %r11\n"
                 method_ctx.body += "movq %rdx, %rax\n"
                 pass
-
-
 
         else:
             return self.visitChildren(ctx)

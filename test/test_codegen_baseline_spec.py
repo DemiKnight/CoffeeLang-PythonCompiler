@@ -117,6 +117,18 @@ def test_expr_basic_assign():
 
     assert executeTestCode(target.data + target.body) == "14"
 
+def test_expr_basic_assign2():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int a;
+    a = 2;
+    return a; 
+    """)
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "2"
+
+
 
 @pytest.mark.skip
 def test_task1():
