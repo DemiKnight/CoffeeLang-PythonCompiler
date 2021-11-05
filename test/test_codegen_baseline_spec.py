@@ -117,6 +117,7 @@ def test_expr_basic_assign():
 
     assert executeTestCode(target.data + target.body) == "14"
 
+
 def test_expr_basic_assign2():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
@@ -142,6 +143,7 @@ def test_task1_reduced():
 
     assert executeTestCode(target.data + target.body) == "15"
 
+
 @pytest.mark.skip
 def test_invert_number():
     target = CoffeeTreeVisitorGen()
@@ -154,6 +156,8 @@ def test_invert_number():
     target.visit(test_prog)
 
     assert executeTestCode(target.data + target.body) == "236"
+
+
 @pytest.mark.skip
 def test_task1():
     target = CoffeeTreeVisitorGen()
@@ -169,6 +173,7 @@ def test_task1():
     assert executeTestCode(target.data + target.body) == "241"
     runOutput = "Return Code 241"  # Is -15 but 256-15 == 241
 
+
 @pytest.mark.skip
 def test_task2_methods_empty():
     target = CoffeeTreeVisitorGen()
@@ -181,6 +186,7 @@ def test_task2_methods_empty():
 
     target.visit(test_prog)
     assert executeTestCode(target.data + target.body) == "0"
+
 
 @pytest.mark.skip
 def test_task2_methods():
@@ -195,6 +201,7 @@ def test_task2_methods():
     target.visit(test_prog)
     assert executeTestCode(target.data + target.body) == "28"
 
+@pytest.mark.skip
 def test_for_loop():
     target = CoffeeTreeVisitorGen()
     test_prog = createTree("""
