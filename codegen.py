@@ -132,8 +132,9 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
             methodCtx.body += f"movq %rax, {var.addr}(%rbp)\n"
 
 
-
     def visitExpr(self, ctx:CoffeeParser.ExprContext):
+        print(f"testing123 {ctx.SUB()}")
+        breakpoint()
         if ctx.literal() is not None:
             return self.visit(ctx.literal())
         elif ctx.location() is not None:
@@ -176,7 +177,10 @@ class CoffeeTreeVisitorGen(CoffeeVisitor):
                 method_ctx.body += "idiv %r11\n"
                 method_ctx.body += "movq %rdx, %rax\n"
                 pass
-
+        elif ctx.SUB() is not None:
+            method_ctx: Method = self.stbl.getMethodContext()
+            method_ctx.body += "neg %rax\n"
+            # breakpoint()
         else:
             return self.visitChildren(ctx)
 

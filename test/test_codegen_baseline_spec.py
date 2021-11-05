@@ -129,6 +129,30 @@ def test_expr_basic_assign2():
     assert executeTestCode(target.data + target.body) == "2"
 
 
+def test_task1_reduced():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int a, b;
+    a = 2 + 3 * 4; 
+    b = 5 - a % 10;
+    return a + b;
+    """)
+
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "15"
+
+def test_invert_number():
+    target = CoffeeTreeVisitorGen()
+    test_prog = createTree("""
+    int a;
+    a = 10;
+    return -(a);
+    """)
+
+    target.visit(test_prog)
+
+    assert executeTestCode(target.data + target.body) == "246"
 
 @pytest.mark.skip
 def test_task1():
