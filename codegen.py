@@ -8,7 +8,6 @@ from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 #   - Issue with negation
 # Task 3 - Loops
 #   - Causes an infinite loop
-# Changes
 class CoffeeTreeVisitorGen(CoffeeVisitor):
     body: str
     data: str

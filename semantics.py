@@ -1,13 +1,12 @@
-import antlr4 as antlr
 from enum import Enum
+from typing import List
 
-from typing import List, Any
+import antlr4 as antlr
 
 from CoffeeLang.CoffeeLexer import CoffeeLexer
-from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from CoffeeLang.CoffeeParser import CoffeeParser
-
-from CoffeeLang.CoffeeUtil import Var, Method, Import, Loop, SymbolTable, Var
+from CoffeeLang.CoffeeUtil import Method, SymbolTable, Var
+from CoffeeLang.CoffeeVisitor import CoffeeVisitor
 from Utils import SemanticsError, ErrorType, print_semantic_errors
 
 
@@ -19,6 +18,9 @@ class TypePrecedence(Enum):
     NOTHING = 99
 
 
+# Tasks attempted:
+# Task 1 Method Invocation
+# Task 2 Arithmetic and Logic
 class CoffeeTreeVisitor(CoffeeVisitor):
     # List of all errors
     errors: List[SemanticsError]
@@ -37,7 +39,7 @@ class CoffeeTreeVisitor(CoffeeVisitor):
             self.errors.append(SemanticsError(line_number, variable_id, ErrorType.VAR_ALREADY_DEFINED))
         else:
             variable_is_array = context.var().INT_LIT() is not None
-            variable_size = int(context.var().INT_LIT().getText()) * 64 if variable_is_array else 8
+            variable_size = int(context.var().INT_LIT().getText()) * 8 if variable_is_array else 8
 
             # Check specified array size
             if variable_is_array and int(context.var().INT_LIT().getText()) <= 0:
@@ -247,13 +249,12 @@ class CoffeeTreeVisitor(CoffeeVisitor):
 
             existing_method = self.stbl.find(import_method_id)
 
-            if existing_method is not None: # Duplicate import
+            if existing_method is not None:  # Duplicate import
                 self.errors.append(SemanticsError(ctx.start.line, import_method_id, ErrorType.IMPORT_DUPLICATE))
             else:
                 # We don't know the imported function type, so utilise it for a warning
                 method = Method(import_method_id, "import", ctx.start.line)
                 self.stbl.pushMethod(method)
-
 
     def visitIf(self, ctx: CoffeeParser.IfContext):
         method_context: Method = self.stbl.getMethodContext()
